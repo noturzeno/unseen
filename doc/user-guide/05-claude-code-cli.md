@@ -19,6 +19,10 @@ uses it to:
      specs (asking you about anything unclear), then tracks them as it builds.
    - **Already developed** (existing codebase): the agent scans the code, reviews every suggestion, and records
      each existing feature with an honest status, linked tests and diagrams.
+   - **Join this project** (shown instead once features are recorded): for a new contributor joining a project
+     someone already set up. The agent installs the CLI, links the repository with its own token and reads the
+     existing inventory, without scanning or importing it again, so nothing is duplicated. The two setup options
+     are still under **Set up from scratch instead**.
 2. Click **Copy prompt**.
 3. Open the real project's repository in Claude Code (or another coding agent) and paste the prompt as a message.
 

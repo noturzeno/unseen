@@ -19,6 +19,8 @@ A **project** is one product or codebase you want to track, for example a client
 You're taken to the project's overview page (see [guide 4](04-dashboard.md)). Next, connect your coding agent:
 pick **Just started** or **Already developed**, copy the prompt, and paste it into Claude Code in the project's repository
 ([guide 5](05-claude-code-cli.md#fastest-paste-a-setup-prompt-into-your-agent)). That's all: the agent does the rest.
+Colleagues who join later pick **Join this project** in **Settings → Coding agent** instead, so their agent uses the
+features you already recorded rather than importing them again.
 
 ## Edit a project
 

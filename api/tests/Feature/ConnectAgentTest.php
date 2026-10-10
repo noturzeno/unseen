@@ -149,6 +149,48 @@ class ConnectAgentTest extends TestCase
         $this->get("/projects/{$this->project->id}/edit")->assertOk()->assertSee('Coding agent')->assertSee('Already developed');
     }
 
+    public function test_tracked_project_offers_a_join_prompt_first(): void
+    {
+        $this->actingAs($this->user);
+
+        Livewire::test(ConnectAgent::class, ['project' => $this->project])->assertDontSee('Join this project');
+
+        Feature::factory()->for($this->project)->count(3)->create();
+
+        Livewire::test(ConnectAgent::class, ['project' => $this->project])
+            ->assertSeeInOrder(['Join this project', '3 features already recorded', 'Set up from scratch instead', 'Already developed'])
+            ->call('generate', 'join')
+            ->assertSee('join this project')
+            ->assertSee('unseen init');
+    }
+
+    public function test_join_prompt_links_the_agent_without_importing_again(): void
+    {
+        Feature::factory()->for($this->project)->count(2)->create();
+
+        $join = AgentSetup::issue($this->project, $this->user, 'join')['prompt'];
+
+        $this->assertStringContainsString('This project is already tracked: 2 features were recorded by another contributor', $join);
+        $this->assertStringContainsString('--token-stdin', $join);
+        $this->assertStringContainsString('## Unseen', $join);
+        $this->assertStringContainsString('replace it with this one rather than adding a second copy', $join);
+        $this->assertStringContainsString('Run `unseen status --json`', $join);
+        $this->assertStringContainsString("don't record the existing features again", $join);
+        $this->assertStringNotContainsString('Run `unseen scan`. It reads', $join);
+        $this->assertStringNotContainsString('Start the inventory from the plan', $join);
+        $this->assertStringNotContainsString('Build the inventory', $join);
+    }
+
+    public function test_prompts_tell_agents_not_to_record_features_or_diagrams_twice(): void
+    {
+        $existing = AgentSetup::issue($this->project, $this->user, 'existing')['prompt'];
+
+        $this->assertStringContainsString('If features are already recorded (another contributor set this project up), don\'t import them again', $existing);
+        $this->assertStringContainsString('Never record a feature twice', $existing); // CLAUDE.md section
+        $this->assertStringContainsString('instead of adding a copy', $existing);
+        $this->assertStringNotContainsString('You are the only writer', $existing);
+    }
+
     public function test_outsiders_cannot_generate_prompts(): void
     {
         $this->actingAs(User::factory()->create());

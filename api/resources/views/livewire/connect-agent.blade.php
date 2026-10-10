@@ -1,12 +1,12 @@
 <div @class(['card', 'connect-agent', 'intro' => $intro && ! $prompt])>
     @if ($prompt)
         <div class="card-head">
-            <h2>Paste this into your coding agent <span class="muted small">· {{ $stage === 'new' ? 'just started' : 'already developed' }}</span></h2>
+            <h2>Paste this into your coding agent <span class="muted small">· {{ ['new' => 'just started', 'existing' => 'already developed', 'join' => 'join this project'][$stage] }}</span></h2>
             <span class="badge warn">Contains a secret · shown once</span>
         </div>
         <ol class="steps small">
             <li>Open the real project's repository in Claude Code (or another coding agent).</li>
-            <li>Copy the prompt below and paste it as a message. The agent installs the CLI, links the repository, saves the token outside the repo, and {{ $stage === 'new' ? 'records the planned features, then tracks them as it builds' : 'records every existing feature from the code' }}.</li>
+            <li>Copy the prompt below and paste it as a message. The agent installs the CLI, links the repository, saves the token outside the repo, and {{ ['new' => 'records the planned features, then tracks them as it builds', 'existing' => 'records every existing feature from the code', 'join' => 'reads the features already recorded, without importing them again'][$stage] }}.</li>
             <li>Come back here: features appear as the agent records them.</li>
         </ol>
         <div x-data="{ copied: false }">
@@ -40,17 +40,21 @@
                 @endif
             </div>
         </div>
-        <div class="stage-choice" role="group" aria-label="Where is this project?">
-            <button type="button" class="stage" wire:click="generate('new')" wire:loading.attr="disabled">
-                <strong>Just started</strong>
-                <span>Little or no code yet. The agent records the planned features, then tracks them as it builds.</span>
-                <em>Get setup prompt →</em>
-            </button>
-            <button type="button" class="stage" wire:click="generate('existing')" wire:loading.attr="disabled">
-                <strong>Already developed</strong>
-                <span>Existing codebase. The agent scans it and records every feature, its status, tests and diagrams.</span>
-                <em>Get setup prompt →</em>
-            </button>
-        </div>
+        @if ($featuresCount > 0)
+            <div class="stage-choice">
+                <button type="button" class="stage" wire:click="generate('join')" wire:loading.attr="disabled">
+                    <strong>Join this project</strong>
+                    <span>{{ $featuresCount }} {{ Str::plural('feature', $featuresCount) }} already recorded. Links your agent to the existing inventory without scanning or importing it again.</span>
+                    <em>Get join prompt →</em>
+                </button>
+            </div>
+            <details class="help">
+                <summary class="muted small">Set up from scratch instead</summary>
+                <p class="muted small">Only for a repository whose features aren't in Unseen yet. The agent checks what's recorded first, but a full setup can still add duplicates.</p>
+                <x-agent-stages />
+            </details>
+        @else
+            <x-agent-stages />
+        @endif
     @endif
 </div>

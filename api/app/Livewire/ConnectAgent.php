@@ -21,7 +21,7 @@ class ConnectAgent extends Component
     /** The prompt just generated; it contains the token, so it is shown once. */
     public ?string $prompt = null;
 
-    /** Which prompt was generated: "new" (just started) or "existing" (already developed). */
+    /** Which prompt was generated: "new" (just started), "existing" (already developed) or "join" (already tracked). */
     public ?string $stage = null;
 
     public function generate(string $stage): void
@@ -51,6 +51,8 @@ class ConnectAgent extends Component
 
         return view('livewire.connect-agent', [
             'tokens' => $tokens,
+            // Once features are recorded, a new contributor joins instead of importing them again.
+            'featuresCount' => $this->project->features()->count(),
             'days' => AgentSetup::TOKEN_DAYS,
         ]);
     }

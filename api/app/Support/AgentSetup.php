@@ -14,8 +14,11 @@ final class AgentSetup
 {
     public const TOKEN_DAYS = 90;
 
-    /** Where the project is: just started (record the plan) or already developed (inventory the code). */
-    public const STAGES = ['new', 'existing'];
+    /**
+     * Where the project is: just started (record the plan), already developed (inventory the code),
+     * or already tracked (join: link another contributor's agent without importing anything again).
+     */
+    public const STAGES = ['new', 'existing', 'join'];
 
     /**
      * @return array{token: string, prompt: string}
@@ -43,6 +46,7 @@ final class AgentSetup
 
         return view('agent.setup-prompt', [
             'project' => $project,
+            'featuresCount' => $project->features()->count(),
             'name' => $name,
             'stage' => $stage,
             'token' => $token,

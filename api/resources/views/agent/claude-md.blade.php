@@ -1,7 +1,8 @@
 ## Unseen
 
 This repository is tracked in Unseen (`.unseen.json`): {!! $url !!}/projects/{!! $project->id !!}
-You are the only writer of its Unseen data. People only view it, and only CI test runs verify features.
+Coding agents are the only writers of its Unseen data (several contributors' agents may share it). People only
+view it, and only CI test runs verify features.
 
 - Before starting a task, run `unseen status --json`. Use existing feature names and ids; read their
   acceptance criteria; note open unresolved items (with ids), failed verifications, and the roadmap's
@@ -19,7 +20,9 @@ You are the only writer of its Unseen data. People only view it, and only CI tes
   changed requirements become features or feature updates (keep their ids), and status changes in the
   docs are checked against the code before you record them.
 - If the task adds an untracked feature or changes what one does, record it with `unseen api` before
-  reporting (it uses the stored token; never handle the token yourself):
+  reporting (it uses the stored token; never handle the token yourself). Never record a feature twice:
+  check `unseen status --json` (or `unseen api GET /projects/{!! $project->id !!}/features`) first, and if a feature with
+  the same or a similar name exists, update it with PATCH instead of creating a new one.
   - New feature: `unseen api POST /projects/{!! $project->id !!}/features --data '{"name":"…","description":"…","status":"in_progress","acceptance_criteria":["…"]}'`
   - Status: `unseen api PATCH /features/<id> --data '{"status":"implemented","status_note":"…"}'`
     (`implemented` only when fully built; `verified`/`failed` are refused, only test runs verify)
@@ -29,7 +32,9 @@ You are the only writer of its Unseen data. People only view it, and only CI tes
     feature that exists on only some of them; leave it out for features on every platform (shared code, backend, API)
 @endif
   - Tests that prove it: `unseen api POST /features/<id>/checks --data '{"pattern":"Tests\\Feature\\SomeTest"}'`
-  - Diagram (where it helps): `unseen api POST /features/<id>/diagrams --file <json outside the repo>` with
+  - Diagram (where it helps): first check `unseen api GET /features/<id>/diagrams`; change an existing one with
+    `unseen api PATCH /diagrams/<diagram id> --file <json>` instead of adding a copy. New one:
+    `unseen api POST /features/<id>/diagrams --file <json outside the repo>` with
     `{"type":"flowchart|use_case|sequence","title":"…","definition":"<Mermaid>"}`. Draw use cases as `flowchart LR`
     with `Name[Customer]:::actor` actors, `([Use case])` pills inside a `subgraph`, and `classDef actor stroke-dasharray: 4 3`.
 @if ($project->mismatches_enabled)

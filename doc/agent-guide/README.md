@@ -1,7 +1,7 @@
 # Unseen guide for coding agents
 
 **Audience:** AI coding agents (Claude Code and similar) working in a repository that contains `.unseen.json`.
-**Purpose:** keep the project's feature inventory accurate. You are its only writer: people view it in the web app,
+**Purpose:** keep the project's feature inventory accurate. Coding agents are its only writers: people view it in the web app,
 and only trusted test runs verify.
 
 > Humans setting this up: see [user guide 5](../user-guide/05-claude-code-cli.md) and paste one of the
@@ -26,7 +26,7 @@ and only trusted test runs verify.
 
 ## 2. What you can and cannot do
 
-You are the **only writer** of this project's tracking data: the web app is view only for people. Your token
+Coding agents are the **only writers** of this project's tracking data: the web app is view only for people. Your token
 (created by `unseen init`) has `read`, `report` and `record`, and allows:
 
 | ✅ Allowed | ❌ Not allowed |

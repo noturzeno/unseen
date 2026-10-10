@@ -35,9 +35,10 @@ This repository is tracked in Unseen (`.unseen.json`). Full guide: <Unseen repo>
   code; keep the design: update the PRD), then `unseen mismatch applied <id> --note "…"`.
 - Never claim or imply verification. Only CI test runs verify features.
 - Never put secrets, `.env` values, connection strings or personal data in a report.
-- You are the only writer of this project's Unseen data (people only view it). If the task adds an
+- Coding agents are the only writers of this project's Unseen data (people only view it). If the task adds an
   untracked feature or changes what one does, record it with `unseen api` (feature, acceptance criteria,
-  status, checks for its tests, and a diagram where it helps). See section 3a of the guide.
+  status, checks for its tests, and a diagram where it helps). Check the existing features and diagrams
+  first and update them rather than adding duplicates. See section 3a of the guide.
 - Track the tickets you work on and the QA / client feedback you are given with `unseen ticket`
   (section 3c of the guide): `add` a ticket when given one, `move` it to `in_progress`, record feedback with
   `unseen ticket comment <ticket> --role qa|client --body "…" [--status qa_failed|client_review|changes_requested|done]`,
