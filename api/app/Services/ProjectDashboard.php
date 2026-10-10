@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\CommentRole;
 use App\Enums\FeatureStatus;
+use App\Enums\Platform;
 use App\Enums\SuggestionStatus;
 use App\Enums\TicketStatus;
 use App\Enums\VerificationStatus;
@@ -16,6 +17,7 @@ use App\Models\Ticket;
 use App\Models\TicketComment;
 use App\Models\UnresolvedItem;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
@@ -28,9 +30,33 @@ use Illuminate\Support\Collection;
  * Every feature counts, whatever its status. Percentages are rounded down so a project
  * never shows 100% before every feature qualifies. With no features, both are null
  * (unknown), not 0 or 100.
+ *
+ * forPlatform() narrows every feature number to one platform: features tagged with it plus
+ * untagged ones (they apply to every platform). Tickets, reports and unresolved work stay project-wide.
  */
 class ProjectDashboard
 {
+    private ?Platform $platform = null;
+
+    public function forPlatform(?Platform $platform): static
+    {
+        $copy = clone $this;
+        $copy->platform = $platform;
+
+        return $copy;
+    }
+
+    /** The project's features, narrowed to the platform when one is set. */
+    private function features(Project $project): HasMany
+    {
+        return $project->features()->when($this->platform, fn ($q, Platform $p) => $q->onPlatform($p));
+    }
+
+    private function featureScope(Project $project): \Closure
+    {
+        return fn (Builder $q) => $q->where('project_id', $project->id)->when($this->platform, fn ($q, Platform $p) => $q->onPlatform($p));
+    }
+
     /**
      * @return array{implemented_percent: int|null, verified_percent: int|null}
      */
@@ -59,22 +85,24 @@ class ProjectDashboard
 
         $total = array_sum($byStatus);
         $implemented = $byStatus[FeatureStatus::Implemented->value];
-        $verified = $project->features()
+        $verified = $this->features($project)
             ->where('status', FeatureStatus::Implemented)
             ->where('verification_status', VerificationStatus::Verified)
             ->count();
 
         return [
+            'platform' => $this->platform?->value,
             'total' => $total,
             'by_status' => $byStatus,
             'by_verification_status' => $byVerification,
             'implemented_and_verified' => $verified,
-            'needs_attention' => self::scopeNeedsAttention($project->features()->getQuery())->count(),
+            'needs_attention' => self::scopeNeedsAttention($this->features($project)->getQuery())->count(),
             'progress' => self::progress($implemented, $verified, $total),
+            'by_platform' => $this->byPlatform($project),
             'reports' => $project->developmentReports()->count(),
             'open_unresolved' => $project->unresolvedItems()->where('status', UnresolvedItem::OPEN)->count(),
             'unresolved_waiting_on' => $this->waitingOnCounts($project),
-            'implemented_without_checks' => $project->features()->where('status', FeatureStatus::Implemented)->doesntHave('checks')->count(),
+            'implemented_without_checks' => $this->features($project)->where('status', FeatureStatus::Implemented)->doesntHave('checks')->count(),
             'latest_test_run' => ($run = $project->testRuns()->latest()->latest('id')->first()) ? [
                 'id' => $run->id,
                 'git_commit' => $run->git_commit,
@@ -83,7 +111,8 @@ class ProjectDashboard
             ] : null,
             'pending_suggestions' => $project->featureSuggestions()->where('status', SuggestionStatus::Pending)->count(),
             'tickets' => $this->ticketCounts($project),
-            'mismatches' => app(SpecMismatchService::class)->counts($project),
+            // Null when the project has PRD vs design turned off.
+            'mismatches' => $project->mismatches_enabled ? app(SpecMismatchService::class)->counts($project) : null,
             'last_report_at' => ($last = $project->developmentReports()->max('reported_at')) ? Carbon::parse($last) : null,
         ];
     }
@@ -93,7 +122,7 @@ class ProjectDashboard
      */
     public function attention(Project $project, int $limit = 10): Collection
     {
-        return self::scopeNeedsAttention($project->features()->getQuery())
+        return self::scopeNeedsAttention($this->features($project)->getQuery())
             ->with('category')
             ->orderByRaw("case when verification_status = 'failed' then 0 when status = 'blocked' then 1 else 2 end")
             ->latest('updated_at')
@@ -106,7 +135,7 @@ class ProjectDashboard
      */
     public function recentlyUpdated(Project $project, int $limit = 10): Collection
     {
-        return $project->features()->with('category')->latest('updated_at')->latest('id')->limit($limit)->get();
+        return $this->features($project)->with('category')->latest('updated_at')->latest('id')->limit($limit)->get();
     }
 
     /**
@@ -115,7 +144,7 @@ class ProjectDashboard
     public function recentChanges(Project $project, int $limit = 10): Collection
     {
         return FeatureStatusChange::query()
-            ->whereHas('feature', fn (Builder $q) => $q->where('project_id', $project->id))
+            ->whereHas('feature', $this->featureScope($project))
             ->with(['feature:id,name', 'user:id,name'])
             ->latest('created_at')
             ->latest('id')
@@ -130,7 +159,7 @@ class ProjectDashboard
      */
     public function withoutChecks(Project $project, int $limit = 10): Collection
     {
-        return $project->features()->where('status', FeatureStatus::Implemented)->doesntHave('checks')
+        return $this->features($project)->where('status', FeatureStatus::Implemented)->doesntHave('checks')
             ->orderBy('name')->limit($limit)->get();
     }
 
@@ -238,7 +267,7 @@ class ProjectDashboard
         $implemented = FeatureStatus::Implemented->value;
         $verified = VerificationStatus::Verified->value;
 
-        $rows = $project->features()
+        $rows = $this->features($project)
             ->toBase()
             ->selectRaw('category_id, count(*) as total')
             ->selectRaw('sum(case when status = ? then 1 else 0 end) as implemented', [$implemented])
@@ -265,6 +294,33 @@ class ProjectDashboard
     }
 
     /**
+     * Progress per project platform, in the project's platform order. A feature with no platform
+     * counts on every platform, so the totals can add up to more than the feature count.
+     * Ignores forPlatform(): this is the side-by-side view.
+     *
+     * @return list<array{platform: string, label: string, total: int, implemented: int, verified: int, needs_attention: int, progress: array}>
+     */
+    public function byPlatform(Project $project): array
+    {
+        return array_map(function (Platform $platform) use ($project) {
+            $features = fn () => $project->features()->onPlatform($platform);
+            $total = $features()->count();
+            $implemented = $features()->where('status', FeatureStatus::Implemented)->count();
+            $verified = $features()->where('status', FeatureStatus::Implemented)->where('verification_status', VerificationStatus::Verified)->count();
+
+            return [
+                'platform' => $platform->value,
+                'label' => $platform->label(),
+                'total' => $total,
+                'implemented' => $implemented,
+                'verified' => $verified,
+                'needs_attention' => self::scopeNeedsAttention($features()->getQuery())->count(),
+                'progress' => self::progress($implemented, $verified, $total),
+            ];
+        }, $project->platformList());
+    }
+
+    /**
      * Feature status changes per week (weeks start Monday), oldest first, including empty weeks.
      *
      * @return list<array{week: Carbon, count: int}>
@@ -274,7 +330,7 @@ class ProjectDashboard
         $start = now()->startOfWeek()->subWeeks($weeks - 1);
 
         $counts = FeatureStatusChange::query()
-            ->whereHas('feature', fn (Builder $q) => $q->where('project_id', $project->id))
+            ->whereHas('feature', $this->featureScope($project))
             ->where('created_at', '>=', $start)
             ->pluck('created_at')
             ->countBy(fn ($at) => Carbon::parse($at)->startOfWeek()->toDateString());
@@ -291,7 +347,7 @@ class ProjectDashboard
      */
     private function countBy(Project $project, string $column, array $cases): array
     {
-        $counts = $project->features()
+        $counts = $this->features($project)
             ->toBase()
             ->selectRaw("{$column} as value, count(*) as aggregate")
             ->groupBy($column)

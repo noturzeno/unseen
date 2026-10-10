@@ -24,16 +24,22 @@ You are the only writer of its Unseen data. People only view it, and only CI tes
   - Status: `unseen api PATCH /features/<id> --data '{"status":"implemented","status_note":"…"}'`
     (`implemented` only when fully built; `verified`/`failed` are refused, only test runs verify)
   - Category: `unseen api POST /projects/{!! $project->id !!}/categories --data '{"name":"…"}'`, then `"category_id"` on the feature
+@if (count($project->platformList()) > 1)
+  - Platforms: this project ships on {!! collect($project->platformList())->map(fn ($p) => $p->value)->join(', ') !!}. Add `"platforms":["ios"]` (any of those) to a
+    feature that exists on only some of them; leave it out for features on every platform (shared code, backend, API)
+@endif
   - Tests that prove it: `unseen api POST /features/<id>/checks --data '{"pattern":"Tests\\Feature\\SomeTest"}'`
   - Diagram (where it helps): `unseen api POST /features/<id>/diagrams --file <json outside the repo>` with
     `{"type":"flowchart|use_case|sequence","title":"…","definition":"<Mermaid>"}`. Draw use cases as `flowchart LR`
     with `Name[Customer]:::actor` actors, `([Use case])` pills inside a `subgraph`, and `classDef actor stroke-dasharray: 4 3`.
+@if ($project->mismatches_enabled)
 - PRD vs design: the build follows the designer's design, which can differ from the PRD. When you notice a
   difference (or I ask you to look for them), record it with `unseen mismatch add --file <json outside the repo>`:
   `{"key":"<req id>-<slug>","reference":"PRD §… · design: <screen>","feature":"<feature>","title":"…","prd_says":"…","design_says":"…","built_to":"design|prd|neither|not_built","built_note":"…","impact":"…","decide_by":"team|client"}`.
   Never pick a side yourself: I (or the client) decide on the dashboard. Before a task, check
   `unseen mismatch list --status decided` and carry out decisions that touch it (follow the PRD: change the
   code; keep the design: update the PRD), then `unseen mismatch applied <id> --note "…"`.
+@endif
 - Track tickets and their QA / client feedback with `unseen ticket` (`<ticket>` = its reference or `#id`):
   - When I give you a ticket, bug or change request, record it unless `unseen ticket list --all` has it:
     `unseen ticket add --title "…" --ref <REF> --type feature|bug|change_request|task --feature "<feature>" --raised-by client|qa|project_manager|developer --comment "<their words>"`.

@@ -3,6 +3,10 @@
 Designers sometimes design something different from what the PRD says, and the build usually follows the design.
 Unseen lists every such difference so you can decide each one on purpose.
 
+It's on for every project by default. To turn it off (for a project with no separate design), untick **Track PRD vs
+design** in the project's **Settings**. That hides the tab and the dashboard card and drops it from the agent's
+instructions; mismatches already recorded are kept and come back when you turn it on again.
+
 ## Getting the list
 
 On the project's **PRD vs design** tab, use **Copy prompt** (or **Proceed**) on *Find PRD vs design mismatches*.

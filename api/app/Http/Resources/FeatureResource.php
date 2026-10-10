@@ -19,6 +19,8 @@ class FeatureResource extends JsonResource
                 : null),
             'name' => $this->name,
             'description' => $this->description,
+            // Empty: the feature applies to every platform of the project.
+            'platforms' => $this->platforms ?? [],
             'status' => $this->status,
             'verification_status' => $this->verification_status,
             'acceptance_criteria' => $this->whenLoaded('acceptanceCriteria', fn () => $this->acceptanceCriteria->map(fn ($c) => [

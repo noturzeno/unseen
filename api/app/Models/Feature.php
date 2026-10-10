@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use App\Enums\FeatureStatus;
+use App\Enums\Platform;
 use App\Enums\VerificationStatus;
+use App\Models\Concerns\HasPlatforms;
 use Database\Factories\FeatureFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -15,11 +18,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * status / verification_status are not fillable: change them through
  * FeatureStatusService so every change is recorded in the history.
  */
-#[Fillable(['name', 'description', 'category_id'])]
+#[Fillable(['name', 'description', 'category_id', 'platforms'])]
 class Feature extends Model
 {
     /** @use HasFactory<FeatureFactory> */
     use HasFactory;
+
+    use HasPlatforms;
 
     protected $attributes = [
         'status' => 'planned',
@@ -32,6 +37,20 @@ class Feature extends Model
             'status' => FeatureStatus::class,
             'verification_status' => VerificationStatus::class,
         ];
+    }
+
+    /**
+     * Features that apply to the platform: tagged with it, or not tagged at all (every platform).
+     */
+    public function scopeOnPlatform(Builder $query, Platform $platform): void
+    {
+        $query->where(fn (Builder $q) => $q->whereNull('platforms')->orWhereJsonContains('platforms', $platform->value));
+    }
+
+    /** Applies to every platform of the project: no platform tagged. */
+    public function isOnAllPlatforms(): bool
+    {
+        return $this->platformList() === [];
     }
 
     public function project(): BelongsTo

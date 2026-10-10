@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\FeatureStatus;
 use App\Enums\VerificationStatus;
+use App\Models\Concerns\HasPlatforms;
 use App\Services\ProjectDashboard;
 use Database\Factories\ProjectFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -15,15 +16,22 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
-#[Fillable(['name', 'description', 'repository_url', 'tech_stack'])]
+#[Fillable(['name', 'description', 'repository_url', 'tech_stack', 'platforms', 'mismatches_enabled'])]
 class Project extends Model
 {
     /** @use HasFactory<ProjectFactory> */
     use HasFactory;
 
+    use HasPlatforms;
+
+    protected $attributes = [
+        'mismatches_enabled' => true,
+    ];
+
     protected function casts(): array
     {
         return [
+            'mismatches_enabled' => 'boolean',
             'archived_at' => 'datetime',
             'roadmap_synced_at' => 'datetime',
         ];
@@ -113,6 +121,12 @@ class Project extends Model
     public function ticketComments(): HasMany
     {
         return $this->hasMany(TicketComment::class);
+    }
+
+    /** Two or more platforms: the dashboard splits progress per platform. */
+    public function isMultiPlatform(): bool
+    {
+        return count($this->platformList()) > 1;
     }
 
     public function isArchived(): bool

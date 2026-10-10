@@ -87,6 +87,7 @@ data-safety rules apply as for reports ([section 10](#10-data-safety-checklist-r
 |---|---|
 | Create a category | `unseen api POST /projects/<id>/categories --data '{"name":"Billing"}'` |
 | Create a feature | `unseen api POST /projects/<id>/features --data '{"name":"Invoice download","description":"Customers can download past invoices as PDF.","category_id":4,"status":"in_progress","acceptance_criteria":["Every paid invoice has a Download button","The PDF matches the invoice total"]}'` |
+| Tag its platforms | `unseen api PATCH /features/<id> --data '{"platforms":["ios"]}'`. Use the project's platforms (`ios`, `android`, `web`); `[]` or leaving it out means every platform |
 | Change its status | `unseen api PATCH /features/<id> --data '{"status":"implemented","status_note":"Built in task #123"}'` |
 | Replace its criteria | `unseen api PATCH /features/<id> --data '{"acceptance_criteria":["…","…"]}'` |
 | Link the tests that prove it | `unseen api POST /features/<id>/checks --data '{"pattern":"Tests\\Feature\\InvoiceDownloadTest"}'` |

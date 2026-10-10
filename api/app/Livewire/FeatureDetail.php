@@ -50,7 +50,7 @@ class FeatureDetail extends Component
             'diagramSync' => DiagramPrompt::build($this->feature, $diagrams),
             'repositoryEvidence' => $this->feature->suggestions()->with('lastScan')->get(),
             'next' => FeaturePrompt::build($this->feature),
-            'mismatches' => $this->feature->specMismatches()->with('decidedBy:id,name')
+            'mismatches' => ! $this->feature->project->mismatches_enabled ? collect() : $this->feature->specMismatches()->with('decidedBy:id,name')
                 ->orderByRaw("case status when 'open' then 0 when 'decided' then 1 else 2 end")->latest('updated_at')->get(),
             'tickets' => $this->feature->tickets()->with('latestFeedback')->withCount('comments')
                 ->orderByRaw("case when status in ('done', 'closed') then 1 else 0 end")->latest('updated_at')->limit(20)->get(),

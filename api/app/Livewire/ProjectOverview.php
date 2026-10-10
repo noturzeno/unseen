@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Enums\FeatureStatus;
+use App\Enums\Platform;
 use App\Enums\VerificationStatus;
 use App\Models\Project;
 use App\Services\ProjectDashboard;
@@ -31,6 +32,13 @@ class ProjectOverview extends Component
     #[Url(as: 'q')]
     public string $search = '';
 
+    /**
+     * One of the project's platforms, or "" for all. Narrows the feature numbers, charts and lists;
+     * kept when filters are cleared because it is the view, not a filter.
+     */
+    #[Url]
+    public string $platform = '';
+
     /** Category id, "none" for uncategorised, or "" for all. */
     #[Url]
     public string $category = '';
@@ -42,7 +50,7 @@ class ProjectOverview extends Component
 
     public function updating($property): void
     {
-        if (in_array($property, ['status', 'verification', 'category', 'search'], true)) {
+        if (in_array($property, ['status', 'verification', 'category', 'search', 'platform'], true)) {
             $this->resetPage();
         }
     }
@@ -68,6 +76,21 @@ class ProjectOverview extends Component
         $this->search = '';
         $this->resetPage();
         $this->dispatch('features-filtered'); // the Features card scrolls itself into view
+    }
+
+    /** Platform tabs and tiles. Platforms the project doesn't have fall back to all. */
+    public function showPlatform(string $platform = ''): void
+    {
+        $this->platform = $platform;
+        $this->resetPage();
+    }
+
+    /** The selected platform, if it is one of the project's. Unknown values from the URL are ignored. */
+    private function selectedPlatform(): ?Platform
+    {
+        $platform = Platform::tryFrom($this->platform);
+
+        return in_array($platform, $this->project->platformList(), true) ? $platform : null;
     }
 
     public function clearFilters(): void
@@ -123,6 +146,9 @@ class ProjectOverview extends Component
     {
         Gate::authorize('view', $this->project);
 
+        $platform = $this->selectedPlatform();
+        $dashboard = $dashboard->forPlatform($platform);
+
         $summary = $dashboard->summary($this->project);
         $byCategory = $dashboard->byCategory($this->project)->map(fn (array $cat) => $cat + ['segments' => [
             ['Verified', $cat['verified'], 'ok', "filterFeatures('{$cat['id']}', '', 'verified')"],
@@ -138,6 +164,7 @@ class ProjectOverview extends Component
 
         $features = $this->project->features()
             ->with('category')
+            ->when($platform, fn ($q, Platform $p) => $q->onPlatform($p))
             ->withCount('checks')
             ->when($search !== '', fn ($q) => $q->whereRaw("lower(name) like ? escape '\\'", ['%'.mb_strtolower(addcslashes($search, '%_\\')).'%']))
             ->when($status, fn ($q) => $q->where('status', $status))
@@ -151,12 +178,14 @@ class ProjectOverview extends Component
 
         return view('livewire.project-overview', [
             'summary' => $summary,
+            'platforms' => $this->project->platformList(),
+            'activePlatform' => $platform,
             'attention' => $dashboard->attention($this->project),
             'recentChanges' => $dashboard->recentChanges($this->project),
             'recentReports' => $dashboard->recentReports($this->project),
             'unresolved' => $dashboard->unresolved($this->project),
-            'mismatches' => $this->project->specMismatches()->with('feature:id,name')->where('status', 'open')
-                ->orderByRaw("case decide_by when 'team' then 0 else 1 end")->latest('updated_at')->limit(3)->get(),
+            'mismatches' => $this->project->mismatches_enabled ? $this->project->specMismatches()->with('feature:id,name')->where('status', 'open')
+                ->orderByRaw("case decide_by when 'team' then 0 else 1 end")->latest('updated_at')->limit(3)->get() : collect(),
             'openTickets' => $dashboard->openTickets($this->project, 5),
             'feedback' => $dashboard->recentFeedback($this->project, 5),
             'withoutChecks' => $dashboard->withoutChecks($this->project),

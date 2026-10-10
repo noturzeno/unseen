@@ -111,8 +111,8 @@ class AgentRunService
 
                 return ['Sort open items by who has to act', UnresolvedPrompt::forSorting($project, $open, $open->count())];
             })(),
-            'find_mismatches' => ['Find PRD vs design mismatches', MismatchPrompt::find($project)],
-            'apply_mismatches' => ['Apply PRD vs design decisions', MismatchPrompt::apply($project) ?? abort(404)],
+            'find_mismatches' => ['Find PRD vs design mismatches', $project->mismatches_enabled ? MismatchPrompt::find($project) : abort(404)],
+            'apply_mismatches' => ['Apply PRD vs design decisions', ($project->mismatches_enabled ? MismatchPrompt::apply($project) : null) ?? abort(404)],
             'suggestions' => ['Review scan suggestions', NextSteps::prompt($project, 'suggestions')],
             'ci' => ['Set up CI verification', NextSteps::prompt($project, 'ci')],
             'tests' => ['Link tests to implemented features', NextSteps::prompt($project, 'tests')],

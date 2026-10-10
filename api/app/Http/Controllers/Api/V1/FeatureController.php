@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Enums\ClaimSource;
 use App\Enums\FeatureStatus;
+use App\Enums\Platform;
 use App\Enums\VerificationStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreFeatureRequest;
@@ -28,7 +29,7 @@ class FeatureController extends Controller
     public function __construct(private readonly FeatureStatusService $statuses) {}
 
     /**
-     * Filters: status, verification_status, category_id (id or "none").
+     * Filters: status, verification_status, category_id (id or "none"), platform (tagged with it or untagged).
      */
     public function index(Request $request, Project $project): AnonymousResourceCollection
     {
@@ -38,6 +39,7 @@ class FeatureController extends Controller
             'status' => [Rule::enum(FeatureStatus::class)],
             'verification_status' => [Rule::enum(VerificationStatus::class)],
             'category_id' => ['regex:/^(none|\d+)$/'],
+            'platform' => [Rule::enum(Platform::class)],
             'per_page' => ['integer', 'min:1', 'max:100'],
         ]);
 
@@ -47,6 +49,7 @@ class FeatureController extends Controller
             ->when($filters['verification_status'] ?? null, fn ($q, $v) => $q->where('verification_status', $v))
             ->when(($filters['category_id'] ?? null) === 'none', fn ($q) => $q->whereNull('category_id'))
             ->when(ctype_digit($filters['category_id'] ?? ''), fn ($q) => $q->where('category_id', (int) $filters['category_id']))
+            ->when($filters['platform'] ?? null, fn ($q, $v) => $q->onPlatform(Platform::from($v)))
             ->latest('updated_at')
             ->latest('id')
             ->paginate($filters['per_page'] ?? 50)
@@ -62,7 +65,7 @@ class FeatureController extends Controller
         $data = $request->validated();
 
         $feature = DB::transaction(function () use ($data, $project, $request) {
-            $feature = $project->features()->make(collect($data)->only(['name', 'description', 'category_id'])->all());
+            $feature = $project->features()->make(collect($data)->only(['name', 'description', 'category_id', 'platforms'])->all());
 
             $this->statuses->apply(
                 $feature,
@@ -98,7 +101,7 @@ class FeatureController extends Controller
         $data = $request->validated();
 
         DB::transaction(function () use ($data, $feature, $request) {
-            $feature->fill(collect($data)->only(['name', 'description', 'category_id'])->all());
+            $feature->fill(collect($data)->only(['name', 'description', 'category_id', 'platforms'])->all());
 
             if (isset($data['status']) || isset($data['verification_status'])) {
                 $this->statuses->apply(

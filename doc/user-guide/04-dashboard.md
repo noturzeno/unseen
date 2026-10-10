@@ -34,8 +34,19 @@ The top card ranks what to do next, so you can pick by priority and hand it to y
 The top five show first; **Show N more** lists the rest. The card only suggests: nothing changes until the agent
 acts on a prompt. It disappears when there is nothing to suggest.
 
+### Platforms
+Shown when the project has two or more platforms (iOS, Android, Web; set them in **Settings**). Each platform gets a
+tile with its own implemented and verified percentages and how many of its features need attention. Click a tile, or
+**iOS** / **Android** / **Web** above them, to show that platform only: the feature table, counters, charts, progress,
+needs attention, recent changes and verification then cover just that platform. **All platforms** goes back. Tickets,
+reports, unresolved work and suggested next steps are always for the whole project.
+
+Coding agents tag each feature with the platforms it is on. A feature with no platform (shared code, the backend, the
+API) counts on every platform, so the platform totals can add up to more than the number of features. With more than
+one platform, the feature table has a **Platforms** column.
+
 ### Features
-The second card: the feature table with quick status filters, search, and verification and category filters.
+The feature card: the feature table with quick status filters, search, and verification and category filters.
 Click a row to open the feature.
 
 ### Counters

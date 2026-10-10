@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Enums\FeatureStatus;
+use App\Enums\Platform;
 use App\Enums\VerificationStatus;
 use App\Models\Feature;
 use App\Models\Project;
@@ -36,6 +37,9 @@ class StoreFeatureRequest extends FormRequest
             // Verified and failed come only from trusted test runs (POST /projects/{id}/test-runs).
             'verification_status' => [Rule::enum(VerificationStatus::class)->only([VerificationStatus::NotChecked, VerificationStatus::NeedsVerification])],
             'status_note' => ['nullable', 'string', 'max:2000'],
+            // Leave out (or send []) for a feature on every platform of the project.
+            'platforms' => ['nullable', 'array'],
+            'platforms.*' => ['distinct', Rule::in(array_map(fn (Platform $p) => $p->value, Project::find($projectId)?->platformList() ?: Platform::cases()))],
             'acceptance_criteria' => ['array', 'max:50'],
             'acceptance_criteria.*' => ['required', 'string', 'max:2000'],
         ];
@@ -45,6 +49,7 @@ class StoreFeatureRequest extends FormRequest
     {
         return [
             'verification_status.enum' => 'Only trusted test runs can mark a feature verified or failed. Use not_checked or needs_verification.',
+            'platforms.*.in' => 'Use one of the project\'s platforms (ios, android, web). Add the platform to the project first if it is missing.',
         ];
     }
 

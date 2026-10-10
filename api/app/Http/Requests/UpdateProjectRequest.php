@@ -18,6 +18,8 @@ class UpdateProjectRequest extends FormRequest
             'description' => ['sometimes', 'nullable', 'string', 'max:5000'],
             'repository_url' => ['sometimes', 'nullable', 'string', 'max:2048', 'regex:'.StoreProjectRequest::REPOSITORY_PATTERN],
             'tech_stack' => ['sometimes', 'nullable', 'string', 'max:255'],
+            ...StoreProjectRequest::platformRules(),
+            'mismatches_enabled' => ['sometimes', 'boolean'],
         ];
     }
 

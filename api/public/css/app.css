@@ -144,6 +144,9 @@ form .field { margin-bottom: 16px; }
 label { display: block; font-weight: 500; font-size: .929rem; color: var(--text-2); margin-bottom: 6px; }
 label:has(> input[type=checkbox]), label:has(> input[type=radio]) { display: inline-flex; align-items: center; gap: 8px; font-weight: 400; color: var(--text); cursor: pointer; margin: 0; }
 input[type=checkbox], input[type=radio] { width: 16px; height: 16px; margin: 0; accent-color: var(--accent); }
+fieldset.field { border: 0; padding: 0; margin: 0 0 16px; min-width: 0; }
+fieldset.field legend { padding: 0; font-weight: 500; font-size: .929rem; color: var(--text-2); margin-bottom: 8px; }
+.checks { display: flex; flex-wrap: wrap; gap: 8px 20px; }
 input[type=text], input[type=email], input[type=password], input[type=number], input[type=url], input[type=search], select, textarea {
   width: 100%; height: 36px; padding: 0 11px; border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
   background: var(--surface); color: var(--text); font: inherit; box-shadow: var(--shadow-xs); transition: border-color .12s, box-shadow .12s;
@@ -668,3 +671,17 @@ main.home { max-width: 820px; }
 .powered-by img { width: 20px; height: 20px; }
 .powered-name { font-weight: 600; letter-spacing: .06em; text-transform: uppercase; font-size: .786rem; }
 .auth .powered-by { border-top: 0; padding-bottom: 0; }
+
+/* Platforms (iOS / Android / Web) */
+.platform-switch { margin-bottom: 8px; }
+.platform-note { margin: 0 0 16px; }
+.platform-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.platform-tile { display: block; width: 100%; padding: 12px; border: 1px solid var(--border); background: var(--surface); font: inherit; color: inherit; text-align: left; cursor: pointer; }
+.platform-tile:hover { border-color: var(--accent); }
+.platform-tile:focus-visible { outline: none; box-shadow: var(--ring); }
+.platform-tile.active { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.platform-tile .row-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 8px; }
+.platform-tile .row-head strong { font-size: 1rem; }
+.platform-tile .progress + .progress { margin-top: 6px; }
+.platform-tags { display: inline-flex; flex-wrap: wrap; gap: 4px; }
+.badge.platform::before { display: none; }

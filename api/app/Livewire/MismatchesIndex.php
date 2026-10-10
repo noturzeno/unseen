@@ -33,6 +33,7 @@ class MismatchesIndex extends Component
     public function mount(Project $project): void
     {
         Gate::authorize('view', $project);
+        abort_unless($project->mismatches_enabled, 404); // turned off in the project settings
     }
 
     public function updatedShow(): void

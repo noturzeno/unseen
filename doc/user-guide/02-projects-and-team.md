@@ -12,6 +12,8 @@ A **project** is one product or codebase you want to track, for example a client
    | Description | `Self-service portal for agency clients` | One or two sentences |
    | Repository | `git@github.com:example/client-portal.git` | A `https://`, `ssh://`, `git://` or `git@host:org/repo` URL, or an absolute local path like `/Users/you/code/portal` |
    | Main technology | `Laravel, Vue` | Free text |
+   | Platforms | iOS, Android | Optional. Tick each platform the project ships on. With two or more, the dashboard shows progress per platform ([guide 4](04-dashboard.md#platforms)) |
+   | Track PRD vs design | On | On by default. Turn it off for projects without a separate design: the **PRD vs design** tab, its dashboard card and the agent's instructions for it are hidden, and agents can't record new mismatches. Recorded mismatches are kept ([guide 13](13-prd-vs-design.md)) |
 3. Click **Save project**.
 
 You're taken to the project's overview page (see [guide 4](04-dashboard.md)). Next, connect your coding agent:

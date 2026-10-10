@@ -7,8 +7,9 @@
                 @if ($project->isArchived()) <span class="badge">Archived</span> @endif
             </h1>
             @if ($project->description) <p class="muted">{{ $project->description }}</p> @endif
-            @if ($project->tech_stack || $project->repository_url)
+            @if ($platforms || $project->tech_stack || $project->repository_url)
                 <div class="meta small muted">
+                    @foreach ($platforms as $p) <span class="badge platform">{{ $p->label() }}</span> @endforeach
                     @if ($project->tech_stack) <span>{{ $project->tech_stack }}</span> @endif
                     @if ($project->tech_stack && $project->repository_url) <span>·</span> @endif
                     @if ($project->repository_url) <code>{{ $project->repository_url }}</code> @endif
@@ -56,7 +57,7 @@
     @endif
 
     @php($mc = $summary['mismatches'])
-    @if ($mc['open'] + $mc['decided'] > 0)
+    @if ($mc && $mc['open'] + $mc['decided'] > 0)
         <div class="card mismatch-summary">
             <div class="card-head">
                 <h2>PRD vs design <span class="count">{{ $mc['open'] }}</span></h2>
@@ -81,11 +82,56 @@
         </div>
     @endif
 
+    @if (count($platforms) > 1)
+        <div class="card platforms-card">
+            <div class="card-head">
+                <h2>Platforms</h2>
+                <span class="muted small">Features with no platform count on every platform.</span>
+            </div>
+            <div class="segmented platform-switch" role="group" aria-label="Show one platform">
+                <button type="button" wire:click="showPlatform('')" @class(['active' => ! $activePlatform]) aria-pressed="{{ $activePlatform ? 'false' : 'true' }}">All platforms</button>
+                @foreach ($platforms as $p)
+                    <button type="button" wire:click="showPlatform('{{ $p->value }}')" @class(['active' => $activePlatform === $p]) aria-pressed="{{ $activePlatform === $p ? 'true' : 'false' }}">{{ $p->label() }}</button>
+                @endforeach
+            </div>
+            @if ($activePlatform)
+                <p class="platform-note small muted">The numbers, charts and feature lists below are for <strong>{{ $activePlatform->label() }}</strong> only. Tickets, reports and unresolved work are for the whole project.</p>
+            @endif
+            <div class="platform-grid">
+                @foreach ($summary['by_platform'] as $row)
+                    <button type="button" wire:key="pf-{{ $row['platform'] }}" @class(['platform-tile', 'active' => $activePlatform?->value === $row['platform']])
+                        wire:click="showPlatform('{{ $activePlatform?->value === $row['platform'] ? '' : $row['platform'] }}')"
+                        title="{{ $activePlatform?->value === $row['platform'] ? 'Show all platforms' : 'Show only '.$row['label'] }}">
+                        <div class="row-head">
+                            <strong>{{ $row['label'] }}</strong>
+                            <span class="muted small">{{ $row['total'] }} {{ Str::plural('feature', $row['total']) }}</span>
+                        </div>
+                        @if ($row['total'] === 0)
+                            <p class="muted small">No features on this platform yet.</p>
+                        @else
+                            <div class="progress">
+                                <div class="row small"><span>Implemented</span><span>{{ $row['progress']['implemented_percent'] }}%</span></div>
+                                <div class="bar"><div class="fill" style="width: {{ $row['progress']['implemented_percent'] }}%"></div></div>
+                            </div>
+                            <div class="progress">
+                                <div class="row small"><span>Verified</span><span>{{ $row['progress']['verified_percent'] }}%</span></div>
+                                <div class="bar"><div class="fill ok" style="width: {{ $row['progress']['verified_percent'] }}%"></div></div>
+                            </div>
+                            @if ($row['needs_attention'])
+                                <p class="small"><span class="badge warn">{{ $row['needs_attention'] }} need attention</span></p>
+                            @endif
+                        @endif
+                    </button>
+                @endforeach
+            </div>
+        </div>
+    @endif
+
     @php($bs = $summary['by_status'])
     @php($vs = $summary['by_verification_status'])
     <div class="card features-card" id="features" x-data x-on:features-filtered.window="$nextTick(() => $el.scrollIntoView({ block: 'start' }))">
         <div class="card-head">
-            <h2>Features <span class="count">{{ $summary['total'] }}</span></h2>
+            <h2>Features @if ($activePlatform) <span class="muted">· {{ $activePlatform->label() }}</span> @endif <span class="count">{{ $summary['total'] }}</span></h2>
             @if ($filtered) <button class="btn link" type="button" wire:click="clearFilters">Clear filters</button> @endif
         </div>
 
@@ -132,7 +178,7 @@
         @else
             <div class="table-wrap" wire:loading.class="loading" wire:target="status, verification, category, search, clearFilters">
                 <table class="features-table">
-                    <thead><tr><th>Feature</th><th>Category</th><th>Implementation</th><th>Verification</th><th>Checks</th><th>Updated</th></tr></thead>
+                    <thead><tr><th>Feature</th><th>Category</th>@if (count($platforms) > 1)<th>Platforms</th>@endif<th>Implementation</th><th>Verification</th><th>Checks</th><th>Updated</th></tr></thead>
                     <tbody>
                         @foreach ($features as $feature)
                             <tr wire:key="f-{{ $feature->id }}">
@@ -141,6 +187,15 @@
                                     @if ($feature->description) <div class="desc">{{ Str::limit($feature->description, 90) }}</div> @endif
                                 </td>
                                 <td class="muted">{{ $feature->category?->name ?? '—' }}</td>
+                                @if (count($platforms) > 1)
+                                    <td class="small">
+                                        @if ($feature->isOnAllPlatforms())
+                                            <span class="muted">All</span>
+                                        @else
+                                            <span class="platform-tags">@foreach ($feature->platformList() as $p)<span class="badge platform">{{ $p->label() }}</span>@endforeach</span>
+                                        @endif
+                                    </td>
+                                @endif
                                 <td><x-status-badge :status="$feature->status" /></td>
                                 <td><x-status-badge :status="$feature->verification_status" /></td>
                                 <td class="muted small">{{ $feature->checks_count ?: '—' }}</td>
@@ -253,6 +308,13 @@
                 </p>
             @else
                 <p class="muted small">No automated test results yet. Send them from CI or with <code>unseen verify</code>.</p>
+                @if ($hints = $activePlatform ? [$activePlatform] : $platforms)
+                    <ul class="plain">
+                        @foreach ($hints as $p)
+                            <li class="small muted" wire:key="vh-{{ $p->value }}"><strong>{{ $p->label() }}:</strong> {{ $p->junitHint() }}</li>
+                        @endforeach
+                    </ul>
+                @endif
             @endif
             @if ($summary['implemented_without_checks'])
                 <p class="small"><span class="badge warn">{{ $summary['implemented_without_checks'] }} implemented {{ Str::plural('feature', $summary['implemented_without_checks']) }} without automated checks</span>

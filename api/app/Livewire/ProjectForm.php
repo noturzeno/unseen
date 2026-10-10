@@ -24,6 +24,12 @@ class ProjectForm extends Component
 
     public string $tech_stack = '';
 
+    /** @var list<string> Platform values the project ships on. */
+    public array $platforms = [];
+
+    /** PRD vs design: off hides the tab, the dashboard card and the agent's instructions for it. */
+    public bool $mismatches_enabled = true;
+
     /** Where the repository is on the signed-in person's computer; their `unseen runner` opens Claude Code there. */
     public string $local_path = '';
 
@@ -38,6 +44,8 @@ class ProjectForm extends Component
             Gate::authorize('update', $project);
             $this->project = $project;
             $this->fill(array_map(fn ($v) => (string) $v, $project->only(['name', 'description', 'repository_url', 'tech_stack'])));
+            $this->platforms = $project->platforms ?? [];
+            $this->mismatches_enabled = $project->mismatches_enabled;
             $this->local_path = (string) $project->workspaceFor(auth()->user())->local_path;
         } else {
             Gate::authorize('create', Project::class);

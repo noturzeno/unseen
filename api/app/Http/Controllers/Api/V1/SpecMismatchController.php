@@ -59,6 +59,7 @@ class SpecMismatchController extends Controller
     public function store(Request $request, Project $project): JsonResponse
     {
         Gate::authorize('update', $project);
+        abort_unless($project->mismatches_enabled, 409, 'PRD vs design is turned off for this project. Turn it on in the project settings to record mismatches.');
 
         $data = $request->validate(self::rules($project));
         [$mismatch, $new] = $this->mismatches->record($project, $data, ClaimSource::AgentReported, $request->user());

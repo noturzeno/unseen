@@ -18,6 +18,8 @@ class ProjectResource extends JsonResource
             'description' => $this->description,
             'repository_url' => $this->repository_url,
             'tech_stack' => $this->tech_stack,
+            'platforms' => $this->platforms ?? [],
+            'mismatches_enabled' => $this->mismatches_enabled,
             'owner' => new UserResource($this->whenLoaded('owner')),
             'is_owner' => $request->user() && $this->isOwnedBy($request->user()),
             'archived' => $this->isArchived(),

@@ -57,7 +57,7 @@ final class NextSteps
         }
 
         // PRD vs design decisions people made, waiting for the agent to carry them out.
-        if ($apply = MismatchPrompt::apply($project)) {
+        if ($project->mismatches_enabled && $apply = MismatchPrompt::apply($project)) {
             $n = $project->specMismatches()->where('status', 'decided')->count();
             $add(self::HIGH, 'mismatches', "Apply {$n} PRD vs design ".str('decision')->plural($n), 'You decided these; the code or the PRD still has to change to match.', route('mismatches.index', $project), $apply, 'apply_mismatches');
         }

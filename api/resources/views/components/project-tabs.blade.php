@@ -2,12 +2,12 @@
 @php
     $pending = $project->featureSuggestions()->where('status', \App\Enums\SuggestionStatus::Pending)->count();
     $openTickets = $project->tickets()->open()->count();
-    $undecided = $project->specMismatches()->where('status', 'open')->count();
+    $undecided = $project->mismatches_enabled ? $project->specMismatches()->where('status', 'open')->count() : 0;
     $open = $project->unresolvedItems()->where('status', \App\Models\UnresolvedItem::OPEN)->count();
     $tabs = [
         ['Overview', route('projects.show', $project), request()->routeIs('projects.show'), null],
         ['Roadmap', route('roadmap.index', $project), request()->routeIs('roadmap.*'), null],
-        ['PRD vs design', route('mismatches.index', $project), request()->routeIs('mismatches.*'), $undecided],
+        ...$project->mismatches_enabled ? [['PRD vs design', route('mismatches.index', $project), request()->routeIs('mismatches.*'), $undecided]] : [],
         ['Tickets', route('tickets.index', $project), request()->routeIs('tickets.*'), $openTickets],
         ['Reports', route('reports.index', $project), request()->routeIs('reports.*'), null],
         ['Suggestions', route('suggestions.index', $project), request()->routeIs('suggestions.*'), $pending],

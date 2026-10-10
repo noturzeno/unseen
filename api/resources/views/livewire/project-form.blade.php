@@ -38,6 +38,22 @@
             <input id="tech_stack" type="text" wire:model="tech_stack" placeholder="Laravel, Vue">
             @error('tech_stack') <div class="error">{{ $message }}</div> @enderror
         </div>
+        <fieldset class="field">
+            <legend>Platforms</legend>
+            <div class="checks">
+                @foreach (\App\Enums\Platform::cases() as $platform)
+                    <label><input type="checkbox" wire:model="platforms" value="{{ $platform->value }}"> {{ $platform->label() }}</label>
+                @endforeach
+            </div>
+            <div class="hint">With more than one, the dashboard shows progress per platform. Coding agents tag each feature with the platforms it is on; untagged features count on every platform.</div>
+            @error('platforms') <div class="error">{{ $message }}</div> @enderror
+            @error('platforms.*') <div class="error">{{ $message }}</div> @enderror
+        </fieldset>
+        <div class="field">
+            <label><input type="checkbox" wire:model="mismatches_enabled"> Track PRD vs design</label>
+            <div class="hint">Coding agents record where the build differs from the PRD, for you or the client to decide. Turn it off for projects without a separate design: the tab, the dashboard card and the agent's instructions for it go away. Mismatches already recorded are kept and come back if you turn it on again.</div>
+            @error('mismatches_enabled') <div class="error">{{ $message }}</div> @enderror
+        </div>
         @if ($project)
             @php($workspace = $project->workspaceFor(auth()->user()))
             <div class="field" id="project-folder">
