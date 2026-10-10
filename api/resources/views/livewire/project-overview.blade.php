@@ -127,6 +127,30 @@
                     <button type="button" wire:click="showPlatform('{{ $p->value }}')" @class(['active' => $activePlatform === $p]) aria-pressed="{{ $activePlatform === $p ? 'true' : 'false' }}">{{ $p->label() }}</button>
                 @endforeach
             </div>
+            @if ($summary['total'] > 0 && $untaggedFeatures > 0)
+                @php($allUntagged = $untaggedFeatures === $project->features()->count())
+                <div class="platform-untagged small" x-data="{ copied: false }">
+                    <p>
+                        @if ($allUntagged)
+                            <span class="badge warn">No feature is tagged with a platform yet</span>
+                            so every platform shows the same numbers. Ask your coding agent to tag the features that are only on some platforms.
+                        @else
+                            <span class="badge">{{ $untaggedFeatures }} shared</span>
+                            {{ Str::plural('feature', $untaggedFeatures) }} without a platform count on every platform.
+                        @endif
+                    </p>
+                    @if ($allUntagged)
+                        @php($tagPrompt = \App\Support\NextSteps::prompt($project, 'platforms'))
+                        <div class="actions">
+                            <button class="btn sm" type="button" data-prompt="{{ $tagPrompt }}" title="Copy a prompt for your coding agent"
+                                x-on:click="navigator.clipboard?.writeText($el.dataset.prompt).then(() => { copied = true; setTimeout(() => copied = false, 2500) })">
+                                <span x-show="! copied">Copy prompt</span><span x-show="copied" x-cloak>Copied ✓</span>
+                            </button>
+                            <livewire:proceed-button :project="$project" kind="platforms" :small="true" key="proceed-tag-platforms" />
+                        </div>
+                    @endif
+                </div>
+            @endif
             @if ($activePlatform)
                 <p class="platform-note small muted">The numbers, charts and feature lists below are for <strong>{{ $activePlatform->label() }}</strong> only. Tickets, reports and unresolved work are for the whole project.</p>
             @endif
@@ -137,7 +161,7 @@
                         title="{{ $activePlatform?->value === $row['platform'] ? 'Show all platforms' : 'Show only '.$row['label'] }}">
                         <div class="row-head">
                             <strong>{{ $row['label'] }}</strong>
-                            <span class="muted small">{{ $row['total'] }} {{ Str::plural('feature', $row['total']) }}</span>
+                            <span class="muted small" title="{{ $row['only'] }} only on {{ $row['label'] }}, {{ $row['total'] - $row['only'] }} shared">{{ $row['total'] }} {{ Str::plural('feature', $row['total']) }} · {{ $row['only'] }} only here</span>
                         </div>
                         @if ($row['total'] === 0)
                             <p class="muted small">No features on this platform yet.</p>

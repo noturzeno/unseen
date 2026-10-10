@@ -24,7 +24,7 @@ use InvalidArgumentException;
  */
 class AgentRunService
 {
-    public const KINDS = ['feature', 'phase', 'item', 'items', 'sort', 'find_mismatches', 'apply_mismatches', 'diagrams', 'suggestions', 'ci', 'tests', 'update_cli'];
+    public const KINDS = ['feature', 'phase', 'item', 'items', 'sort', 'find_mismatches', 'apply_mismatches', 'diagrams', 'suggestions', 'ci', 'tests', 'platforms', 'update_cli'];
 
     public function queue(Project $project, User $user, string $kind, ?int $ref = null): AgentRun
     {
@@ -117,6 +117,7 @@ class AgentRunService
             'suggestions' => ['Review scan suggestions', NextSteps::prompt($project, 'suggestions')],
             'ci' => ['Set up CI verification', NextSteps::prompt($project, 'ci')],
             'tests' => ['Link tests to implemented features', NextSteps::prompt($project, 'tests')],
+            'platforms' => ['Tag features with their platforms', $project->isMultiPlatform() ? NextSteps::prompt($project, 'platforms') : abort(404)],
             'update_cli' => ['Update the Unseen CLI to '.Cli::LATEST, Cli::updatePrompt()],
             default => throw new InvalidArgumentException("Unknown run kind [{$kind}]."),
         };

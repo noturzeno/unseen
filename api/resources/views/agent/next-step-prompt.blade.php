@@ -15,6 +15,9 @@ Link tests to the implemented features in the Unseen project "{!! $project !!}" 
 - …and {!! $features->count() - 60 !!} more (see `unseen status --json`).
 @endif
 @break
+@case('platforms')
+Tag the features of the Unseen project "{!! $project !!}" (project #{!! $projectId !!}) with the platforms they are on. The project ships on {!! $platforms !!}, but {!! $untagged !!} of its {!! $total !!} features have no platform, so the dashboard counts every one of them on every platform and shows the same progress for each.
+@break
 @endswitch
 
 This repository should already be linked to Unseen (.unseen.json). If it isn't, stop and ask me for a setup prompt.
@@ -36,6 +39,12 @@ What to do:
 2. For each feature, find the existing tests that prove its acceptance criteria and link them: `unseen api POST /features/<id>/checks --data '{"pattern":"<test class, file or name pattern>"}'`. Use specific patterns, never `*`.
 3. Where a feature has no such tests, write them (start with the most important features), run them, and link them.
 4. If a test shows a feature is broken, fix it or set it back to in_progress with a note.
+@break
+@case('platforms')
+2. List the features page by page: `unseen api GET "/projects/{!! $projectId !!}/features?per_page=100&page=1"` (then page=2, …).
+3. For each feature, check in the code and docs where it is built: which apps (e.g. the iOS app's Swift code, the web app's pages and routes) contain it.
+4. Only for a feature that exists on some of the platforms, not all, set them: `unseen api PATCH /features/<id> --data '{"platforms":["ios"]}'` (any of: {!! $platforms !!}). Leave a feature untagged when it is on every platform or is shared (backend, API, data); untagged counts everywhere.
+5. Change nothing else: no statuses, names or code. If a feature needs a different status on one platform (built on web, not yet on iOS), don't split it; list it at the end so I can decide.
 @break
 @endswitch
 5. Never mark anything verified: only CI test runs (`unseen verify`) verify.

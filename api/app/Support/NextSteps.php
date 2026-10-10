@@ -103,6 +103,12 @@ final class NextSteps
                 self::prompt($project, 'tests'), 'tests');
         }
 
+        // Several platforms, but no feature says which it is on: every platform shows the same numbers.
+        if ($project->isMultiPlatform() && $project->features()->exists() && ! $project->features()->whereNotNull('platforms')->exists()) {
+            $add(self::MEDIUM, 'platforms', 'Tag features with their platforms', 'No feature is tagged with a platform yet, so every platform shows the same progress.', route('projects.show', $project),
+                self::prompt($project, 'platforms'), 'platforms');
+        }
+
         // Work already started, oldest first.
         foreach ($features()->where('status', FeatureStatus::InProgress)->orderBy('updated_at')->limit(3)->get() as $f) {
             $add(self::LOW, 'continue', "Continue “{$f->name}”", 'In progress; last updated '.$f->updated_at->diffForHumans().'.', route('features.show', $f), FeaturePrompt::build($f)['prompt'], 'feature', $f->id);
@@ -134,6 +140,11 @@ final class NextSteps
             'ci' => self::render('ci', $project, $url),
             'tests' => self::render('tests', $project, $url, ['features' => $project->features()
                 ->where('status', FeatureStatus::Implemented)->doesntHave('checks')->orderBy('name')->get(['id', 'name'])]),
+            'platforms' => self::render('platforms', $project, $url, [
+                'platforms' => collect($project->platformList())->map(fn ($p) => $p->value)->join(', '),
+                'untagged' => $project->features()->whereNull('platforms')->count(),
+                'total' => $project->features()->count(),
+            ]),
         };
     }
 

@@ -181,6 +181,7 @@ class ProjectOverview extends Component
             'summary' => $summary,
             'platforms' => $this->project->platformList(),
             'activePlatform' => $platform,
+            'untaggedFeatures' => count($this->project->platformList()) > 1 ? $this->project->features()->whereNull('platforms')->count() : 0,
             'attention' => $dashboard->attention($this->project),
             'recentChanges' => $dashboard->recentChanges($this->project),
             'recentReports' => $dashboard->recentReports($this->project),

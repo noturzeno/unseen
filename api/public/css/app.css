@@ -691,3 +691,5 @@ main.home { max-width: 820px; }
 .recent-modules .row-head .btn.link { padding: 0; font-weight: 600; }
 .recent-modules .prompt-quote { display: block; margin-top: 4px; padding-left: 8px; border-left: 2px solid var(--border); color: var(--text-2); text-decoration: none; }
 .recent-modules .prompt-quote:hover { color: var(--link); }
+.platform-untagged { margin: 0 0 16px; }
+.platform-untagged p { margin: 0 0 8px; }

@@ -10,6 +10,7 @@ use App\Livewire\ProjectOverview;
 use App\Models\Feature;
 use App\Models\Project;
 use App\Services\ProjectDashboard;
+use App\Support\NextSteps;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
 use Livewire\Livewire;
@@ -64,8 +65,8 @@ class PlatformTest extends TestCase
         $this->assertSame(3, $all['total']);
         $this->assertNull($all['platform']);
         $this->assertSame([
-            ['platform' => 'ios', 'label' => 'iOS', 'total' => 2, 'implemented' => 2, 'verified' => 1, 'needs_attention' => 1, 'progress' => ['implemented_percent' => 100, 'verified_percent' => 50]],
-            ['platform' => 'android', 'label' => 'Android', 'total' => 2, 'implemented' => 1, 'verified' => 1, 'needs_attention' => 0, 'progress' => ['implemented_percent' => 50, 'verified_percent' => 50]],
+            ['platform' => 'ios', 'label' => 'iOS', 'total' => 2, 'implemented' => 2, 'verified' => 1, 'needs_attention' => 1, 'only' => 1, 'progress' => ['implemented_percent' => 100, 'verified_percent' => 50]],
+            ['platform' => 'android', 'label' => 'Android', 'total' => 2, 'implemented' => 1, 'verified' => 1, 'needs_attention' => 0, 'only' => 1, 'progress' => ['implemented_percent' => 50, 'verified_percent' => 50]],
         ], $all['by_platform']);
 
         $ios = $dashboard->forPlatform(Platform::Ios)->summary($project);
@@ -142,6 +143,26 @@ class PlatformTest extends TestCase
             ->call('showPlatform', 'web') // not one of the project's platforms
             ->assertViewHas('activePlatform', null)
             ->assertViewHas('features', $names(['Face ID', 'Login', 'Widgets']));
+    }
+
+    public function test_untagged_projects_are_asked_to_tag_their_features(): void
+    {
+        $project = Project::factory()->create(['platforms' => ['ios', 'web']]);
+        $this->feature($project, 'Login', null);
+        $this->feature($project, 'Push', null);
+        $this->actingAs($project->owner);
+
+        $this->assertTrue(NextSteps::for($project)->contains(fn ($s) => $s['run'] === 'platforms'));
+        $prompt = NextSteps::prompt($project, 'platforms');
+        $this->assertStringContainsString('2 of its 2 features have no platform', $prompt);
+        $this->assertStringContainsString('"platforms":["ios"]', $prompt);
+        Livewire::test(ProjectOverview::class, ['project' => $project])->assertSee('No feature is tagged with a platform yet');
+
+        $project->features()->where('name', 'Push')->first()->update(['platforms' => ['ios']]);
+        $this->assertFalse(NextSteps::for($project)->contains(fn ($s) => $s['run'] === 'platforms'));
+        Livewire::test(ProjectOverview::class, ['project' => $project])
+            ->assertDontSee('No feature is tagged with a platform yet')
+            ->assertSee('1 only here');
     }
 
     public function test_single_platform_projects_show_no_switcher(): void

@@ -356,7 +356,7 @@ class ProjectDashboard
      * counts on every platform, so the totals can add up to more than the feature count.
      * Ignores forPlatform(): this is the side-by-side view.
      *
-     * @return list<array{platform: string, label: string, total: int, implemented: int, verified: int, needs_attention: int, progress: array}>
+     * @return list<array{platform: string, label: string, total: int, implemented: int, verified: int, needs_attention: int, only: int, progress: array}>
      */
     public function byPlatform(Project $project): array
     {
@@ -373,6 +373,7 @@ class ProjectDashboard
                 'implemented' => $implemented,
                 'verified' => $verified,
                 'needs_attention' => self::scopeNeedsAttention($features()->getQuery())->count(),
+                'only' => $project->features()->whereJsonContains('platforms', $platform->value)->count(), // tagged with it
                 'progress' => self::progress($implemented, $verified, $total),
             ];
         }, $project->platformList());

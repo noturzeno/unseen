@@ -45,6 +45,10 @@ Coding agents tag each feature with the platforms it is on. A feature with no pl
 API) counts on every platform, so the platform totals can add up to more than the number of features. With more than
 one platform, the feature table has a **Platforms** column.
 
+Until the agent tags any feature, every platform shows the same numbers. The card then says **No feature is tagged
+with a platform yet** and offers a prompt (also a suggested next step) that has the agent tag the features that are
+only on some platforms. Each tile shows how many features are **only here**; the rest are shared.
+
 ### Features
 The feature card: the feature table with quick status filters, search, and verification and category filters.
 Click a row to open the feature.
