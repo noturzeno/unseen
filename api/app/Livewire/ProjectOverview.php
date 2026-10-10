@@ -8,6 +8,7 @@ use App\Enums\VerificationStatus;
 use App\Models\Project;
 use App\Services\ProjectDashboard;
 use App\Services\RoadmapService;
+use App\Support\Cli;
 use App\Support\NextSteps;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Url;
@@ -194,6 +195,7 @@ class ProjectOverview extends Component
             'charts' => self::chartSegments($summary),
             'roadmap' => $roadmap->phases($this->project),
             'nextSteps' => NextSteps::for($this->project),
+            'cliOutdated' => Cli::outdated($this->project, auth()->user()),
             'activity' => $dashboard->weeklyActivity($this->project),
             'categories' => $this->project->featureCategories()->withCount('features')->get(),
             'features' => $features,

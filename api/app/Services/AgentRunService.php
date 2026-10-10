@@ -6,6 +6,7 @@ use App\Models\AgentRun;
 use App\Models\Project;
 use App\Models\UnresolvedItem;
 use App\Models\User;
+use App\Support\Cli;
 use App\Support\DiagramPrompt;
 use App\Support\FeaturePrompt;
 use App\Support\MismatchPrompt;
@@ -23,7 +24,7 @@ use InvalidArgumentException;
  */
 class AgentRunService
 {
-    public const KINDS = ['feature', 'phase', 'item', 'items', 'sort', 'find_mismatches', 'apply_mismatches', 'diagrams', 'suggestions', 'ci', 'tests'];
+    public const KINDS = ['feature', 'phase', 'item', 'items', 'sort', 'find_mismatches', 'apply_mismatches', 'diagrams', 'suggestions', 'ci', 'tests', 'update_cli'];
 
     public function queue(Project $project, User $user, string $kind, ?int $ref = null): AgentRun
     {
@@ -116,6 +117,7 @@ class AgentRunService
             'suggestions' => ['Review scan suggestions', NextSteps::prompt($project, 'suggestions')],
             'ci' => ['Set up CI verification', NextSteps::prompt($project, 'ci')],
             'tests' => ['Link tests to implemented features', NextSteps::prompt($project, 'tests')],
+            'update_cli' => ['Update the Unseen CLI to '.Cli::LATEST, Cli::updatePrompt()],
             default => throw new InvalidArgumentException("Unknown run kind [{$kind}]."),
         };
     }

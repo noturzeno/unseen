@@ -161,6 +161,14 @@ From now on, Claude Code checks Unseen before working and reports afterwards.
 Ask Claude Code something small, e.g. *"Fix the typo on the login page, then report to Unseen."*
 Then open the project in Unseen → **Reports**. The new report should be there.
 
+## Updating the CLI
+
+Unseen notes which CLI version each person's requests come from. When someone on the project has used an older
+version in the last 30 days, the project overview shows **Update the Unseen CLI** with their names. Click **Copy
+update prompt** and paste it into the coding agent on that computer, or click **Proceed** to send it to your own
+runner. You can also reinstall by hand: run the same `npm install -g …/downloads/unseen-cli.tgz` command as in step 1.
+The saved token and the repository link are kept. Restart `unseen runner` afterwards if it was running.
+
 ## Using the CLI from a subfolder
 
 All commands work from any folder inside the repository. They find `.unseen.json` by looking upwards.

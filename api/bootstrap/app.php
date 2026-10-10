@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\RecordCliVersion;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -18,6 +19,8 @@ return Application::configure(basePath: dirname(__DIR__))
         // Vercel terminates TLS and proxies to PHP; trust its X-Forwarded-* headers
         // so URLs come out as https and rate limits see the real client IP.
         $middleware->trustProxies(at: '*');
+
+        $middleware->appendToGroup('api', RecordCliVersion::class);
 
         $middleware->alias([
             'abilities' => CheckAbilities::class,

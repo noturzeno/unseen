@@ -24,6 +24,39 @@
         <livewire:connect-agent :project="$project" :intro="true" />
     @endif
 
+    @if ($cliOutdated->isNotEmpty())
+        @php($meOutdated = $cliOutdated->contains(fn ($u) => $u->is(auth()->user())))
+        <div class="card cli-update" x-data="{ copied: false }">
+            <div class="card-head">
+                <h2>Update the Unseen CLI</h2>
+                <span class="muted small">Version {{ \App\Support\Cli::LATEST }} is available.</span>
+            </div>
+            <ul class="plain">
+                @foreach ($cliOutdated as $person)
+                    <li class="small" wire:key="cli-{{ $person->id }}">
+                        {{ $person->is(auth()->user()) ? 'You' : $person->name }} <span class="badge warn">{{ $person->cli_version }}</span>
+                        <span class="muted">last used {{ $person->cli_seen_at->diffForHumans() }}</span>
+                    </li>
+                @endforeach
+            </ul>
+            <p class="small">Older versions can refuse reports in the current format. Paste this prompt into the coding agent on each computer above, or run <code>{{ \App\Support\Cli::installCommand() }}</code> yourself.</p>
+            @php($cliPrompt = \App\Support\Cli::updatePrompt())
+            <div class="actions">
+                <button class="btn sm" type="button" data-prompt="{{ $cliPrompt }}" title="Copy a prompt for your coding agent"
+                    x-on:click="navigator.clipboard?.writeText($el.dataset.prompt).then(() => { copied = true; setTimeout(() => copied = false, 2500) })">
+                    <span x-show="! copied">Copy update prompt</span><span x-show="copied" x-cloak>Copied ✓</span>
+                </button>
+                @if ($meOutdated)
+                    <livewire:proceed-button :project="$project" kind="update_cli" :small="true" key="proceed-update-cli" />
+                @endif
+            </div>
+            <details class="help">
+                <summary>Show the prompt</summary>
+                <pre><code>{{ $cliPrompt }}</code></pre>
+            </details>
+        </div>
+    @endif
+
     @if ($nextSteps->isNotEmpty())
         <div class="card next-steps" x-data="{ all: false }">
             <div class="card-head">
