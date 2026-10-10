@@ -17,6 +17,7 @@ class DevelopmentReportResource extends JsonResource
             'source' => $this->source,
             'agent' => $this->agent,
             'submitted_by' => $this->whenLoaded('user', fn () => $this->user ? ['id' => $this->user->id, 'name' => $this->user->name] : null),
+            'prompt' => $this->prompt,
             'summary' => $this->summary,
             'confidence' => $this->confidence,
             'limitations' => $this->limitations,

@@ -34,6 +34,7 @@ class ProjectDashboardController extends Controller
             'recently_updated' => FeatureResource::collection($dashboard->recentlyUpdated($project)),
             'recent_changes' => FeatureStatusChangeResource::collection($dashboard->recentChanges($project)),
             'recent_reports' => DevelopmentReportResource::collection($dashboard->recentReports($project)),
+            'recent_modules' => $dashboard->recentModules($project),
             'unresolved' => $dashboard->unresolved($project),
             'without_checks' => FeatureResource::collection($dashboard->withoutChecks($project)),
             // Decided first: those are the agent's to-do. Then the ones waiting for a person.

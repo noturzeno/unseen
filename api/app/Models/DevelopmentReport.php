@@ -16,7 +16,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * Create through DevelopmentReportService so feature claims are applied consistently.
  */
 #[Fillable([
-    'agent', 'summary', 'confidence', 'limitations', 'git_branch', 'git_commit', 'diff_ref',
+    'agent', 'prompt', 'summary', 'confidence', 'limitations', 'git_branch', 'git_commit', 'diff_ref',
     'changed_files', 'tests', 'unresolved', 'reported_at',
 ])]
 class DevelopmentReport extends Model

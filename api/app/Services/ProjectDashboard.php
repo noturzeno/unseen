@@ -9,6 +9,7 @@ use App\Enums\SuggestionStatus;
 use App\Enums\TicketStatus;
 use App\Enums\VerificationStatus;
 use App\Enums\WaitingOn;
+use App\Models\AgentRun;
 use App\Models\DevelopmentReport;
 use App\Models\Feature;
 use App\Models\FeatureStatusChange;
@@ -291,6 +292,63 @@ class ProjectDashboard
             'implemented' => (int) $item['row']->implemented,
             'verified' => (int) $item['row']->verified,
         ]);
+    }
+
+    /**
+     * Modules (feature categories) the coding agent was recently pointed at, newest first: features its
+     * reports touched, and features sent to it with Proceed. Each module carries the latest request:
+     * the report's `prompt` (what the agent was asked), else its summary, or the Proceed prompt's title.
+     * Project-wide, like reports.
+     *
+     * @return list<array{id: string, name: string, last_at: Carbon, prompts: int, features: list<string>, latest: array{text: string, asked: bool, via: string, url: string}}>
+     */
+    public function recentModules(Project $project, int $days = 30, int $limit = 6): array
+    {
+        $since = now()->subDays($days);
+        $events = collect();
+
+        $reports = $project->developmentReports()->where('reported_at', '>=', $since)
+            ->with('features:features.id,features.name,features.category_id')
+            ->latest('reported_at')->latest('id')->limit(100)->get();
+        foreach ($reports as $report) {
+            foreach ($report->features as $feature) {
+                $events->push([
+                    'key' => "report-{$report->id}", 'category_id' => $feature->category_id, 'feature' => $feature->name, 'at' => $report->reported_at,
+                    'latest' => ['text' => $report->prompt ?? $report->summary, 'asked' => $report->prompt !== null, 'via' => 'report', 'url' => route('reports.show', $report)],
+                ]);
+            }
+        }
+
+        // Proceed prompts a runner actually picked up. Only feature prompts point at one module.
+        $runs = $project->agentRuns()->whereIn('kind', ['feature', 'diagrams'])->whereIn('status', [AgentRun::CLAIMED, AgentRun::LAUNCHED])
+            ->where('created_at', '>=', $since)->latest()->latest('id')->limit(100)->get();
+        $runFeatures = $project->features()->whereKey($runs->pluck('ref')->filter())->get(['id', 'name', 'category_id'])->keyBy('id');
+        foreach ($runs as $run) {
+            if ($feature = $runFeatures[$run->ref] ?? null) {
+                $events->push([
+                    'key' => "run-{$run->id}", 'category_id' => $feature->category_id, 'feature' => $feature->name, 'at' => $run->created_at,
+                    'latest' => ['text' => $run->title, 'asked' => true, 'via' => 'proceed', 'url' => route('features.show', $feature)],
+                ]);
+            }
+        }
+
+        $names = $project->featureCategories()->pluck('name', 'id');
+
+        return $events->groupBy(fn ($e) => (string) $e['category_id'])
+            ->map(function (Collection $group, $categoryId) use ($names) {
+                $categoryId = (string) $categoryId; // array keys come back as ints
+                $group = $group->sortByDesc('at')->values();
+
+                return [
+                    'id' => $categoryId === '' ? 'none' : $categoryId,
+                    'name' => $categoryId === '' ? 'Uncategorised' : $names[(int) $categoryId],
+                    'last_at' => $group[0]['at'],
+                    'prompts' => $group->pluck('key')->unique()->count(),
+                    'features' => $group->pluck('feature')->unique()->values()->all(),
+                    'latest' => $group[0]['latest'],
+                ];
+            })
+            ->sortByDesc('last_at')->take($limit)->values()->all();
     }
 
     /**

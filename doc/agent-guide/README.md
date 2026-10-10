@@ -264,6 +264,7 @@ Full report:
 ```json
 {
   "summary": "Added the password reset flow: request form, emailed signed link, reset form, and password update.",
+  "prompt": "Add a password reset flow with an emailed link",
   "agent": "claude-code",
   "confidence": "medium",
   "limitations": "Email sending was tested with the log mail driver only, not a real mail server. Link expiry was tested with a mocked clock.",

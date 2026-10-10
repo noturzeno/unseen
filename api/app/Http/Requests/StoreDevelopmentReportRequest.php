@@ -41,6 +41,8 @@ class StoreDevelopmentReportRequest extends FormRequest
     {
         return [
             'summary' => ['required', 'string', 'max:10000'],
+            // What the agent was asked to do (the person's request, in a sentence). Shown on the dashboard.
+            'prompt' => ['nullable', 'string', 'max:2000'],
             'agent' => ['nullable', 'string', 'max:100'],
             'reported_at' => ['nullable', 'date', 'before_or_equal:'.now()->addMinutes(5)->toIso8601String()],
             'confidence' => ['nullable', Rule::enum(ReportConfidence::class)],

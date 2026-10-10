@@ -72,6 +72,13 @@ Features that are **failed** (shown first), then **blocked**, then **needs verif
 ### Recent changes
 The latest status changes, with their source (user, agent, repository, tests).
 
+### Recently targeted modules
+The modules (feature categories) the coding agent was sent to in the last 30 days, newest first. They come from the
+features its reports touched and the feature prompts you sent with **Proceed**. Each module shows how many prompts
+went there, which features, and the latest request: what the agent was asked (in quotes), or its report summary when
+it didn't record the request. Click a module to filter the feature table to it. This card is for the whole project,
+whichever platform is selected.
+
 ### Recent agent reports and unresolved work
 - **Recent agent reports:** the latest reports, with failing-test and unresolved badges.
 - **Unresolved work (N):** open items that reports said were left to do. Agents close them in a later report.

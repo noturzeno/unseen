@@ -331,6 +331,29 @@
         </div>
 
         <aside class="dash-side">
+            <div class="card recent-modules">
+                <h2>Recently targeted modules</h2>
+                <p class="muted small">Where the coding agent was sent in the last 30 days, from its reports and Proceed prompts.</p>
+                @if (empty($recentModules))
+                    <p class="muted small">Nothing yet. Modules show here once the agent reports work on features, or you send it a feature with Proceed.</p>
+                @else
+                    <ul class="plain">
+                        @foreach ($recentModules as $module)
+                            <li class="small" wire:key="rm-{{ $module['id'] }}">
+                                <div class="row-head">
+                                    <button type="button" class="btn link" wire:click="filterFeatures('{{ $module['id'] }}')" title="Show the features in {{ $module['name'] }}">{{ $module['name'] }}</button>
+                                    <span class="muted">{{ $module['prompts'] }} {{ Str::plural('prompt', $module['prompts']) }} · {{ $module['last_at']->diffForHumans() }}</span>
+                                </div>
+                                <div class="muted">{{ Str::limit(implode(', ', $module['features']), 120) }}</div>
+                                <a href="{{ $module['latest']['url'] }}" wire:navigate class="prompt-quote" title="{{ $module['latest']['asked'] ? 'What the agent was asked' : 'What the agent reported (no prompt recorded)' }}">
+                                    {{ $module['latest']['asked'] ? '“'.Str::limit($module['latest']['text'], 160).'”' : Str::limit($module['latest']['text'], 160) }}
+                                </a>
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
+            </div>
+
             <div class="card">
                 <h2>Needs attention</h2>
                 @if ($attention->isEmpty())

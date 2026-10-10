@@ -13,6 +13,10 @@
     </div>
 
     <div class="card">
+        @if ($report->prompt)
+            <h2>Asked</h2>
+            <p style="white-space: pre-line">{{ $report->prompt }}</p>
+        @endif
         <h2>Summary</h2>
         <p style="white-space: pre-line">{{ $report->summary }}</p>
         @if ($report->limitations)

@@ -183,6 +183,7 @@ class ProjectOverview extends Component
             'attention' => $dashboard->attention($this->project),
             'recentChanges' => $dashboard->recentChanges($this->project),
             'recentReports' => $dashboard->recentReports($this->project),
+            'recentModules' => $dashboard->recentModules($this->project),
             'unresolved' => $dashboard->unresolved($this->project),
             'mismatches' => $this->project->mismatches_enabled ? $this->project->specMismatches()->with('feature:id,name')->where('status', 'open')
                 ->orderByRaw("case decide_by when 'team' then 0 else 1 end")->latest('updated_at')->limit(3)->get() : collect(),

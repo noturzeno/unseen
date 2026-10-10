@@ -15,7 +15,8 @@ This repository is tracked in Unseen (`.unseen.json`). Full guide: <Unseen repo>
 - Before starting a task, run `unseen status --json`. Use existing feature names and ids; read their
   acceptance criteria; note open unresolved items (with ids) and failed verifications related to the task.
 - After finishing a task, write a report JSON to a temp file outside the repo and submit it with
-  `unseen report --file <file>`. Include: a plain-English summary, every feature you changed (status
+  `unseen report --file <file>`. Include: a plain-English summary, `prompt` (what you were asked to do, in a
+  sentence, without secrets or personal data), every feature you changed (status
   only if it changed: `implemented` only when fully built, else `in_progress`), changed files, every test
   command you actually ran with its real outcome (`not_run` for relevant suites you didn't run), anything
   left unfinished in `unresolved`, open item ids you fully completed in `resolves`, honest `limitations`

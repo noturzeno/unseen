@@ -6,6 +6,8 @@ export class PayloadError extends Error {}
 /** Shape sent to POST /api/v1/projects/{id}/reports. */
 export interface ReportPayload {
   summary: string;
+  /** What the agent was asked to do, in a sentence (shown under "Recently targeted modules"). */
+  prompt?: string | null;
   agent?: string | null;
   confidence?: string | null;
   limitations?: string | null;
@@ -24,7 +26,7 @@ export interface ReportPayload {
 }
 
 const ALLOWED_KEYS = new Set([
-  'summary', 'agent', 'confidence', 'limitations', 'reported_at', 'git_branch', 'git_commit', 'diff_ref',
+  'summary', 'prompt', 'agent', 'confidence', 'limitations', 'reported_at', 'git_branch', 'git_commit', 'diff_ref',
   'features', 'changed_files', 'tests', 'unresolved', 'resolves', 'tickets',
 ]);
 

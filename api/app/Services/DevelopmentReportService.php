@@ -41,7 +41,7 @@ class DevelopmentReportService
 
     /**
      * @param  array{
-     *     summary: string, agent?: ?string, confidence?: ?string, limitations?: ?string,
+     *     summary: string, prompt?: ?string, agent?: ?string, confidence?: ?string, limitations?: ?string,
      *     git_branch?: ?string, git_commit?: ?string, diff_ref?: ?string, reported_at?: mixed,
      *     changed_files?: list<array{path: string, change?: ?string}>,
      *     tests?: list<array{command: string, outcome: string, summary?: ?string}>,
@@ -57,7 +57,7 @@ class DevelopmentReportService
             $tests = array_values($data['tests'] ?? []);
 
             $report = $project->developmentReports()->make([
-                ...collect($data)->only(['agent', 'summary', 'confidence', 'limitations', 'git_branch', 'git_commit', 'diff_ref'])->all(),
+                ...collect($data)->only(['agent', 'prompt', 'summary', 'confidence', 'limitations', 'git_branch', 'git_commit', 'diff_ref'])->all(),
                 'changed_files' => array_values($data['changed_files'] ?? []),
                 'tests' => $tests,
                 'unresolved' => array_column($data['unresolved'] ?? [], 'text'),

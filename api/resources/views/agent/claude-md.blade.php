@@ -52,7 +52,8 @@ You are the only writer of its Unseen data. People only view it, and only CI tes
     `"tickets":[{"ref":"<REF>","status":"ready_for_qa","note":"…"}]`.
   - Keep names, emails and phone numbers out of comments: use the role, not the person.
 - After finishing a task, write a report JSON to a temp file outside the repo and submit it with
-  `unseen report --file <file>`. Include: a plain-English summary, every feature you changed (status
+  `unseen report --file <file>`. Include: a plain-English summary, `prompt` (what you were asked to do, in a
+  sentence, without secrets or personal data), every feature you changed (status
   only if it changed), changed files, every test command you actually ran with its real outcome
   (`not_run` for relevant suites you didn't run), anything left unfinished in `unresolved`, open item ids
   you fully completed in `resolves`, honest `limitations` and `confidence`.

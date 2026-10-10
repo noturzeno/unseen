@@ -61,3 +61,8 @@ test('parseReportJson rejects non-objects', () => {
   assert.throws(() => parseReportJson('[1]'), /JSON object/);
   assert.throws(() => parseReportJson('{nope'), /not valid JSON/);
 });
+
+test('passes the prompt the agent was given through', () => {
+  const payload = buildReportPayload({ summary: 'Done', prompt: 'Add Apple Pay to checkout' }, features, null);
+  assert.equal(payload.prompt, 'Add Apple Pay to checkout');
+});
