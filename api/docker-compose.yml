@@ -1,0 +1,41 @@
+# Local development stack: `docker compose up --build`, then open http://localhost:8000
+services:
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+      - vendor:/app/vendor
+    environment:
+      # Override .env so the app talks to the db container.
+      DB_CONNECTION: pgsql
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_DATABASE: trackflow
+      DB_USERNAME: trackflow
+      DB_PASSWORD: trackflow  # local-only container password
+      APP_URL: http://localhost:8000
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: trackflow
+      POSTGRES_USER: trackflow
+      POSTGRES_PASSWORD: trackflow
+    ports:
+      - "54320:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U trackflow -d trackflow"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  pgdata:
+  vendor:

@@ -1,0 +1,28 @@
+{
+  "name": "unseen-cli",
+  "version": "0.2.0",
+  "description": "Connect a repository to Unseen and report coding-agent work.",
+  "license": "UNLICENSED",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "unseen": "dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node --test test/*.test.ts",
+    "prepack": "npm run build",
+    "pack:server": "npm pack --pack-destination ../../api/public/downloads && mv ../../api/public/downloads/unseen-cli-$npm_package_version.tgz ../../api/public/downloads/unseen-cli.tgz"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.4",
+    "typescript": "7.0.2"
+  }
+}
