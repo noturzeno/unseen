@@ -93,7 +93,7 @@ unseen init
 
 Answer the prompts:
 
-1. **Unseen URL:** press Enter for `http://127.0.0.1:8000`, or type your team's address (must be `https://` unless it's on your own machine).
+1. **Unseen URL:** press Enter for `https://onez-unseen.vercel.app`, or type another address such as `http://127.0.0.1:8000` for a local server (must be `https://` unless it's on your own machine).
 2. **Email / Password:** your Unseen login. Nothing appears on screen while you type the password.
 3. **Which project is this repository?** Type the number from the list.
 
@@ -114,7 +114,7 @@ What happened:
 **Without prompts** (scripts, or when you already have a token from the API tokens page):
 ```bash
 export UNSEEN_TOKEN=...     # paste from the API tokens page; don't save it in the repo
-unseen init --api-url https://unseen.example.com --project 3
+unseen init --api-url https://onez-unseen.vercel.app --project 3
 ```
 
 ## Step 4: Check the connection

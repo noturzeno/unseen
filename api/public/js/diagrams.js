@@ -5,34 +5,21 @@
  */
 (function () {
     let seq = 0;
-    let configuredFor = null;
-
-    function dark() {
-        return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-    }
+    let configured = false;
 
     function configure() {
-        const mode = dark() ? 'dark' : 'light';
-        if (!window.mermaid || configuredFor === mode) return;
-        configuredFor = mode;
-        const ink = '#171614', paper = '#fafaf8', brand = '#ffb800';
+        // The UI is light only (theme follows onezcodes.com), so diagrams are too.
+        if (!window.mermaid || configured) return;
+        configured = true;
+        const ink = '#171614';
         window.mermaid.initialize({
             startOnLoad: false,
             securityLevel: 'strict',
             theme: 'base',
-            fontFamily: 'Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif',
+            fontFamily: 'Outfit, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif',
             flowchart: { curve: 'basis', padding: 12 },
             sequence: { mirrorActors: false, actorMargin: 60 },
-            themeVariables: mode === 'dark' ? {
-                darkMode: true, background: '#1f1e1b', fontSize: '14px',
-                primaryColor: '#2a2825', primaryTextColor: paper, primaryBorderColor: brand,
-                secondaryColor: '#262421', tertiaryColor: '#262421',
-                lineColor: '#a8a49c', textColor: paper, mainBkg: '#2a2825', nodeBorder: brand,
-                clusterBkg: '#262421', clusterBorder: '#3d3a35', edgeLabelBackground: '#1f1e1b',
-                actorBkg: '#2a2825', actorBorder: brand, actorTextColor: paper, actorLineColor: '#6b6862',
-                signalColor: '#d9d6cf', signalTextColor: paper, noteBkgColor: '#3a2d0a', noteTextColor: paper, noteBorderColor: brand,
-                activationBkgColor: '#3a2d0a', activationBorderColor: brand,
-            } : {
+            themeVariables: {
                 background: '#ffffff', fontSize: '14px',
                 primaryColor: '#fff4d6', primaryTextColor: ink, primaryBorderColor: '#e0a200',
                 secondaryColor: '#f5f4f0', tertiaryColor: '#f5f4f0',
@@ -117,11 +104,6 @@
             document.getElementById('dtf-diagram-' + seq)?.remove();
         }
     }
-
-    // Redraw everything when the colour scheme changes.
-    window.matchMedia?.('(prefers-color-scheme: dark)').addEventListener?.('change', () => {
-        document.querySelectorAll('[data-diagram]').forEach((el) => render(el));
-    });
 
     // Catch diagrams that were on the page before this script finished loading.
     function renderPending() {

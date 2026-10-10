@@ -39,9 +39,13 @@
 
                 {{ $slot }}
             </main>
+
+            @include('partials.powered-by')
         @else
             <div class="auth">
                 {{ $slot }}
+
+                @include('partials.powered-by')
             </div>
         @endauth
 

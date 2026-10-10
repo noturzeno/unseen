@@ -27,7 +27,7 @@ export async function init(opts: InitOptions, ctx: Context): Promise<number> {
   }
 
   const rawUrl = opts.apiUrl ?? ctx.env.UNSEEN_API_URL
-    ?? (ctx.interactive ? await ask('Unseen URL', 'http://127.0.0.1:8000') : undefined);
+    ?? (ctx.interactive ? await ask('Unseen URL', 'https://onez-unseen.vercel.app') : undefined);
   if (!rawUrl) throw new UsageError('Pass --api-url (or set UNSEEN_API_URL) when not running interactively.');
   const apiUrl = normalizeApiUrl(rawUrl);
 

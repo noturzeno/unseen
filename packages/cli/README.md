@@ -24,7 +24,7 @@ npm link            # puts `unseen` on your PATH
 cd ~/code/my-project
 unseen init                      # interactive: Unseen URL, sign in, pick a project
 # or non-interactive (CI / scripted):
-UNSEEN_TOKEN=... unseen init --api-url https://unseen.example.com --project 3
+UNSEEN_TOKEN=... unseen init --api-url https://onez-unseen.vercel.app --project 3
 ```
 
 `init` writes `.unseen.json` with the URL and project id. It holds no secrets, so commit it

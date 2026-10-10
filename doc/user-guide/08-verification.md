@@ -101,7 +101,7 @@ Example output:
 ```
 Test run #5: 42 passed, 0 failed, 0 skipped (42 total).
 Features: 6 verified, 2 not covered by this run.
-https://unseen.example.com/test-runs/5
+https://onez-unseen.vercel.app/test-runs/5
 ```
 
 ## Step 5: Read the results

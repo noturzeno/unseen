@@ -20,6 +20,14 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
+// Public landing page: what the CLI package is and how to connect a repository.
+Route::get('/', function () {
+    $package = public_path('downloads/unseen-cli.tgz');
+    $version = rescue(fn () => json_decode(file_get_contents('phar://'.$package.'/package/package.json'))->version ?? null, null, false);
+
+    return view('home', ['version' => $version, 'size' => is_file($package) ? filesize($package) : null]);
+})->name('home');
+
 Route::middleware('guest')->group(function () {
     Route::livewire('/login', Login::class)->name('login');
 });
@@ -30,8 +38,6 @@ Route::livewire('/invitations/{token}', AcceptInvitation::class)->middleware('th
 // Project and feature data comes from coding agents through the API; the web UI shows it.
 // People manage only projects, members and API tokens here, and decide PRD vs design mismatches.
 Route::middleware('auth')->group(function () {
-    Route::redirect('/', '/projects');
-
     Route::post('/logout', function (Request $request) {
         Auth::guard('web')->logout();
         $request->session()->invalidate();

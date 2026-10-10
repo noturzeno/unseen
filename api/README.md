@@ -127,7 +127,7 @@ The CLI's `init` asks for `read` + `report` + `record`, so an agent's token can 
 **cannot verify its own work**, and cannot change projects, members or tokens. Give CI a separate `read` + `verify` token (the "CI test results" type on the API tokens page, or):
 
 ```bash
-curl -X POST https://unseen.example.com/api/v1/auth/tokens -H "Accept: application/json" \
+curl -X POST https://onez-unseen.vercel.app/api/v1/auth/tokens -H "Accept: application/json" \
   -H "Content-Type: application/json" \
   -d '{"email":"you@example.com","password":"…","token_name":"ci","abilities":["read","verify"]}'
 ``` Abilities limit what a token can do, while project access rules (below) still
@@ -344,7 +344,7 @@ verified_percent    = floor(features that are implemented AND verified / all tra
 Blade + Livewire 4 (class components in `app/Livewire`). The stylesheet is plain CSS in `public/css/app.css`, so there is no build step.
 Everything the browser loads is served by Unseen itself, so the web UI and the CLI download work without internet
 access: diagrams use a bundled copy of Mermaid 11.4.1 (`public/vendor/mermaid/11.4.1`, MIT licence alongside),
-pinned with a subresource-integrity hash in `resources/views/livewire/feature-detail.blade.php`. Users sign in by session with email and password, limited to 5 attempts per email and IP.
+pinned with a subresource-integrity hash in `resources/views/livewire/feature-detail.blade.php`. The Outfit font (SIL OFL 1.1) is bundled in `public/vendor/fonts/outfit`. Users sign in by session with email and password, limited to 5 attempts per email and IP.
 
 **The web UI is view only for tracking data.** Coding agents write features, categories, criteria, statuses,
 checks, diagrams, reports and scan reviews through the API; trusted test runs verify. People use the web UI to
