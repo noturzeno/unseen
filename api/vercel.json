@@ -18,6 +18,7 @@
         }
     ],
     "env": {
+        "APP_NAME": "Unseen",
         "APP_ENV": "production",
         "APP_DEBUG": "false",
         "APP_CONFIG_CACHE": "/tmp/config.php",

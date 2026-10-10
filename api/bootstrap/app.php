@@ -15,6 +15,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Vercel terminates TLS and proxies to PHP; trust its X-Forwarded-* headers
+        // so URLs come out as https and rate limits see the real client IP.
+        $middleware->trustProxies(at: '*');
+
         $middleware->alias([
             'abilities' => CheckAbilities::class,
             'ability' => CheckForAnyAbility::class,
