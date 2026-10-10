@@ -116,6 +116,16 @@ Then rebuild the CLI download that setup prompts install from: `cd packages/cli 
 (writes `api/public/downloads/unseen-cli.tgz`). Computers that already have the CLI update with
 `npm install -g <Unseen URL>/downloads/unseen-cli.tgz`.
 
+**On Vercel** the build does not run migrations. When a deploy brings new files in `api/database/migrations/`, run
+them on the production database (Supabase) yourself, before or right after deploying, or pages and CLI requests that use
+the new columns fail with a 500 error:
+
+```bash
+cd api && scripts/migrate-production.sh   # asks for the connection string (hidden), lists pending migrations, asks before running
+```
+When you repack the CLI, also set `Cli::LATEST` in `api/app/Support/Cli.php` to the new version, so the dashboard asks
+people with older CLIs to update.
+
 ## Check that everything works
 
 ```bash
