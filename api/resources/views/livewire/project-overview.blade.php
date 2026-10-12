@@ -352,39 +352,24 @@
                 @endif
             </div>
 
-        <div class="card">
-            <h2>Verification</h2>
-            @php($run = $summary['latest_test_run'])
-            @if ($run)
-                <p class="small">
-                    Latest test run <a href="{{ route('test-runs.show', $run['id']) }}" wire:navigate>#{{ $run['id'] }}</a>
-                    {{ $run['created_at']->diffForHumans() }}@if ($run['git_commit']) at <code>{{ Str::limit($run['git_commit'], 10, '') }}</code>@endif:
-                    <span class="badge ok">{{ $run['totals']['passed'] }} passed</span>
-                    @if ($run['totals']['failed']) <span class="badge bad">{{ $run['totals']['failed'] }} failed</span> @endif
-                    @if ($run['totals']['skipped']) <span class="badge">{{ $run['totals']['skipped'] }} skipped</span> @endif
-                </p>
-            @else
-                <p class="muted small">No automated test results yet. Send them from CI or with <code>unseen verify</code>.</p>
-                @if ($hints = $activePlatform ? [$activePlatform] : $platforms)
-                    <ul class="plain">
-                        @foreach ($hints as $p)
-                            <li class="small muted" wire:key="vh-{{ $p->value }}"><strong>{{ $p->label() }}:</strong> {{ $p->junitHint() }}</li>
+            <div class="card">
+                <h2>Recent changes</h2>
+                @if ($recentChanges->isEmpty())
+                    <p class="muted small">No status changes yet.</p>
+                @else
+                    <ul class="plain timeline">
+                        @foreach ($recentChanges as $change)
+                            <li class="small" wire:key="chg-{{ $change->id }}">
+                                <a href="{{ route('features.show', $change->feature_id) }}" wire:navigate>{{ $change->feature->name }}</a>:
+                                {{ $change->field === 'status' ? 'status' : 'verification' }}
+                                {{ $change->from_value ? 'changed from '.str_replace('_', ' ', $change->from_value).' to' : 'set to' }}
+                                <strong>{{ str_replace('_', ' ', $change->to_value) }}</strong>
+                                <div class="muted">{{ $change->source->label() }}{{ $change->user ? ' ('.$change->user->name.')' : '' }} · {{ $change->created_at->diffForHumans() }}</div>
+                            </li>
                         @endforeach
                     </ul>
                 @endif
-            @endif
-            @if ($summary['implemented_without_checks'])
-                <p class="small"><span class="badge warn">{{ $summary['implemented_without_checks'] }} implemented {{ Str::plural('feature', $summary['implemented_without_checks']) }} without automated checks</span>
-                    Test runs can only verify these once an agent links tests to them:</p>
-                <ul class="plain">
-                    @foreach ($withoutChecks as $feature)
-                        <li class="small" wire:key="nc-{{ $feature->id }}"><a href="{{ route('features.show', $feature) }}" wire:navigate>{{ $feature->name }}</a> <x-status-badge :status="$feature->verification_status" /></li>
-                    @endforeach
-                </ul>
-            @elseif ($summary['by_status']['implemented'] > 0)
-                <p class="muted small">Every implemented feature has at least one automated check.</p>
-            @endif
-        </div>
+            </div>
         </div>
 
         <aside class="dash-side">
@@ -435,6 +420,40 @@
 
             @php($tc = $summary['tickets'])
             <div class="card">
+                <h2>Verification</h2>
+                @php($run = $summary['latest_test_run'])
+                @if ($run)
+                    <p class="small">
+                        Latest test run <a href="{{ route('test-runs.show', $run['id']) }}" wire:navigate>#{{ $run['id'] }}</a>
+                        {{ $run['created_at']->diffForHumans() }}@if ($run['git_commit']) at <code>{{ Str::limit($run['git_commit'], 10, '') }}</code>@endif:
+                        <span class="badge ok">{{ $run['totals']['passed'] }} passed</span>
+                        @if ($run['totals']['failed']) <span class="badge bad">{{ $run['totals']['failed'] }} failed</span> @endif
+                        @if ($run['totals']['skipped']) <span class="badge">{{ $run['totals']['skipped'] }} skipped</span> @endif
+                    </p>
+                @else
+                    <p class="muted small">No automated test results yet. Send them from CI or with <code>unseen verify</code>.</p>
+                    @if ($hints = $activePlatform ? [$activePlatform] : $platforms)
+                        <ul class="plain">
+                            @foreach ($hints as $p)
+                                <li class="small muted" wire:key="vh-{{ $p->value }}"><strong>{{ $p->label() }}:</strong> {{ $p->junitHint() }}</li>
+                            @endforeach
+                        </ul>
+                    @endif
+                @endif
+                @if ($summary['implemented_without_checks'])
+                    <p class="small"><span class="badge warn">{{ $summary['implemented_without_checks'] }} implemented {{ Str::plural('feature', $summary['implemented_without_checks']) }} without automated checks</span>
+                        Test runs can only verify these once an agent links tests to them:</p>
+                    <ul class="plain">
+                        @foreach ($withoutChecks as $feature)
+                            <li class="small" wire:key="nc-{{ $feature->id }}"><a href="{{ route('features.show', $feature) }}" wire:navigate>{{ $feature->name }}</a> <x-status-badge :status="$feature->verification_status" /></li>
+                        @endforeach
+                    </ul>
+                @elseif ($summary['by_status']['implemented'] > 0)
+                    <p class="muted small">Every implemented feature has at least one automated check.</p>
+                @endif
+            </div>
+
+            <div class="card">
                 <div class="card-head"><h2>Tickets <span class="count">{{ $tc['open'] }}</span></h2><a href="{{ route('tickets.index', $project) }}" wire:navigate>View all</a></div>
                 @if ($tc['total'] === 0)
                     <p class="muted small">No tickets yet. Coding agents record the tickets they work on, and QA and client comments on them.</p>
@@ -481,24 +500,6 @@
                                     @if ($item['report_id']) <a href="{{ route('reports.show', $item['report_id']) }}" wire:navigate>Report #{{ $item['report_id'] }}</a> · @endif
                                     {{ $item['reported_at']->diffForHumans() }}
                                 </div>
-                            </li>
-                        @endforeach
-                    </ul>
-                @endif
-            </div>
-            <div class="card">
-                <h2>Recent changes</h2>
-                @if ($recentChanges->isEmpty())
-                    <p class="muted small">No status changes yet.</p>
-                @else
-                    <ul class="plain timeline">
-                        @foreach ($recentChanges as $change)
-                            <li class="small" wire:key="chg-{{ $change->id }}">
-                                <a href="{{ route('features.show', $change->feature_id) }}" wire:navigate>{{ $change->feature->name }}</a>:
-                                {{ $change->field === 'status' ? 'status' : 'verification' }}
-                                {{ $change->from_value ? 'changed from '.str_replace('_', ' ', $change->from_value).' to' : 'set to' }}
-                                <strong>{{ str_replace('_', ' ', $change->to_value) }}</strong>
-                                <div class="muted">{{ $change->source->label() }}{{ $change->user ? ' ('.$change->user->name.')' : '' }} · {{ $change->created_at->diffForHumans() }}</div>
                             </li>
                         @endforeach
                     </ul>
