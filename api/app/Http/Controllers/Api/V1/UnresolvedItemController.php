@@ -83,6 +83,9 @@ class UnresolvedItemController extends Controller
             'status' => $item->status,
             'waiting_on' => $item->waiting_on,
             'decision_note' => $item->decision_note,
+            // A person's answer, given on the Unresolved page: carry it out.
+            'decision' => $item->decision,
+            'decided_at' => $item->decided_at,
             'report_id' => $item->development_report_id,
             'resolved_at' => $item->resolved_at,
             'resolved_by' => $item->relationLoaded('resolvedBy') && $item->resolvedBy ? ['id' => $item->resolvedBy->id, 'name' => $item->resolvedBy->name] : null,

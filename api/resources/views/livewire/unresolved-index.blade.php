@@ -96,7 +96,8 @@
                             <span class="muted small">{{ $item->waiting_on?->explanation() ?? 'Nobody has said yet whether these need a decision. Use "Copy prompt" above to have your agent sort them.' }}</span>
                         </li>
                     @endif
-                    <li wire:key="item-{{ $item->id }}" @class(['unresolved-item', 'waiting-'.$group => $current === 'open'])>
+                    <li wire:key="item-{{ $item->id }}" @class(['unresolved-item', 'waiting-'.$group => $current === 'open'])
+                        x-data="{ deciding: false }" x-on:decided.window="if ($event.detail.id === {{ $item->id }}) deciding = false">
                         @if ($current === 'open' && $item->waiting_on)
                             <span class="badge decision {{ $item->waiting_on->tone() }}">{{ $item->waiting_on->label() }}</span>
                         @endif
@@ -106,6 +107,12 @@
                                     <div class="needed"><strong>{{ $item->needsDecision() ? 'Needed:' : 'To do:' }}</strong> {{ $item->decision_note }}</div>
                                 @endif
                                 <span @class(['muted' => $item->decision_note && $current === 'open'])>{{ $item->text }}</span> <span class="muted small">#{{ $item->id }}</span>
+                                @if ($item->decision)
+                                    <div class="decided"><strong>Decided:</strong> {{ $item->decision }}
+                                        <span class="muted small">· {{ $item->decidedBy?->name ?? 'Someone' }}, {{ $item->decided_at?->format('j M Y') }}</span>
+                                        @if ($current === 'open') @can('update', $project) <button class="btn link small" type="button" x-on:click="deciding = ! deciding; $wire.decisions[{{ $item->id }}] ??= @js($item->decision)">Change</button> @endcan @endif
+                                    </div>
+                                @endif
                             </div>
                             @if (isset($clientQuestions[$item->id]))
                                 <button class="btn sm" type="button" x-data="{ copied: false }" data-prompt="{{ $clientQuestions[$item->id] }}"
@@ -115,11 +122,10 @@
                                 </button>
                             @endif
                             @if (isset($prompts[$item->id]) && $item->needsDecision())
-                                <button class="btn sm copy-item" type="button" x-data="{ copied: false }" data-prompt="{{ $prompts[$item->id] }}"
-                                    title="Copy a prompt for your agent with a blank for the decision: fill it in before sending"
-                                    x-on:click="navigator.clipboard?.writeText($el.dataset.prompt).then(() => { copied = true; setTimeout(() => copied = false, 2500) })">
-                                    <span x-show="! copied">Copy prompt with decision</span><span x-show="copied" x-cloak>Copied ✓</span>
-                                </button>
+                                @can('update', $project)
+                                    <button class="btn sm primary" type="button" x-on:click="deciding = ! deciding; $nextTick(() => deciding && $refs.decision.focus())"
+                                        title="Write the decision here. The agent's prompt is then rebuilt with it">{{ $item->waiting_on === \App\Enums\WaitingOn::Client ? 'Record client\'s answer' : 'Decide' }}</button>
+                                @endcan
                             @elseif (isset($prompts[$item->id]))
                                 <button class="btn sm copy-item" type="button" x-data="{ copied: false }" data-prompt="{{ $prompts[$item->id] }}"
                                     title="Copy a prompt that asks your coding agent to resolve this item"
@@ -129,6 +135,21 @@
                                 <livewire:proceed-button :project="$project" kind="item" :ref="$item->id" :small="true" :key="'proceed-item-'.$item->id" />
                             @endif
                         </div>
+                        @if ($current === 'open')
+                            @can('update', $project)
+                                <form class="decide-form" wire:submit="decide({{ $item->id }})" x-show="deciding" x-cloak>
+                                    <label for="decision-{{ $item->id }}">{{ $item->waiting_on === \App\Enums\WaitingOn::Client ? 'What did the client decide?' : 'Your decision' }}</label>
+                                    <textarea id="decision-{{ $item->id }}" x-ref="decision" wire:model="decisions.{{ $item->id }}" rows="3" maxlength="2000"
+                                        placeholder="e.g. Keep the extras: add them to the feature's description and criteria."></textarea>
+                                    @error('decisions.'.$item->id) <div class="error">{{ $message }}</div> @enderror
+                                    <p class="hint">Saved with your name. The item then moves to what your agent can do, and its prompt includes this decision.</p>
+                                    <div class="form-actions">
+                                        <button class="btn primary sm" type="submit" wire:loading.attr="disabled">Save decision</button>
+                                        <button class="btn ghost sm" type="button" x-on:click="deciding = false">Cancel</button>
+                                    </div>
+                                </form>
+                            @endcan
+                        @endif
                         <div class="muted small">
                             @if ($item->report) From <a href="{{ route('reports.show', $item->report) }}" wire:navigate>report #{{ $item->report->id }}</a> · @endif
                             {{ $item->created_at->diffForHumans() }}

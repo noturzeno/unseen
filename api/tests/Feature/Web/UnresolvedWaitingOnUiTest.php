@@ -28,7 +28,7 @@ class UnresolvedWaitingOnUiTest extends TestCase
             ->assertSeeInOrder(['Waiting on you', 'Get a free OneMap API token', 'Waiting on the client', 'Client to provide SingPass access',
                 'Not sorted yet', 'Unsorted gap', 'Your coding agent can do these', 'Fix the 500 on payments'])
             ->assertSee('Your decision needed')->assertSee('Client decision needed')
-            ->assertSee('Copy message for client')->assertSee('Copy prompt with decision')
+            ->assertSee('Copy message for client')->assertSee("Record client's answer")->assertSee('Decide')
             ->assertSee('Ask your agent which need a decision from you or the client');
 
         Livewire::test('unresolved-index', ['project' => $project])

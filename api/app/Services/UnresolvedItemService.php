@@ -3,12 +3,13 @@
 namespace App\Services;
 
 use App\Enums\ClaimSource;
+use App\Enums\WaitingOn;
 use App\Models\DevelopmentReport;
 use App\Models\UnresolvedItem;
 use App\Models\User;
 
 /**
- * Closing and reopening unresolved work. Each closure records who or what closed it,
+ * Deciding, closing and reopening unresolved work. Each closure records who or what closed it,
  * since an agent saying "fixed" is a claim, just like any other report content.
  */
 class UnresolvedItemService
@@ -26,6 +27,20 @@ class UnresolvedItemService
             'resolved_source' => $source,
             'resolved_report_id' => $report?->id,
             'resolution_note' => $note,
+        ]);
+    }
+
+    /**
+     * A person's answer to an item that waited on them or the client. The item then waits on the
+     * agent: its prompt carries the decision, so the agent can carry it out.
+     */
+    public function decide(UnresolvedItem $item, string $decision, User $user): void
+    {
+        $item->update([
+            'waiting_on' => WaitingOn::Agent,
+            'decision' => $decision,
+            'decided_by' => $user->id,
+            'decided_at' => now(),
         ]);
     }
 

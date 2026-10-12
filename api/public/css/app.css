@@ -612,6 +612,10 @@ li.unresolved-item.waiting-team { border-left-color: var(--c-bad); }
 li.unresolved-item.waiting-client { border-left-color: var(--c-warn); }
 .badge.decision { font-weight: 650; font-size: .786rem; margin-bottom: 6px; }
 .needed { margin-bottom: 4px; }
+.unresolved-item .decided { margin-top: 6px; padding: 6px 10px; background: var(--ok-bg); border-left: 3px solid var(--c-ok); white-space: pre-line; }
+.unresolved-item .decided .btn.link { margin-left: 6px; }
+.decide-form { margin: 10px 0 6px; }
+.decide-form .form-actions { display: flex; gap: 8px; margin-top: 8px; }
 @media (max-width: 760px) { .waiting-strip { grid-template-columns: repeat(2, 1fr); } }
 
 /* ---------- PRD vs design mismatches ---------- */

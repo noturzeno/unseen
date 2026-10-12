@@ -118,7 +118,7 @@ export interface Dashboard {
     mismatches?: { open: number; team: number; client: number; decided: number; applied: number };
   };
   needs_attention: Feature[];
-  unresolved: { id: number; text: string; waiting_on?: 'client' | 'team' | 'agent' | null; decision_note?: string | null; report_id: number | null; reported_at: string }[];
+  unresolved: { id: number; text: string; waiting_on?: 'client' | 'team' | 'agent' | null; decision_note?: string | null; decision?: string | null; report_id: number | null; reported_at: string }[];
   recent_reports: { id: number; summary: string; reported_at: string }[];
   open_tickets?: Ticket[];
   mismatches?: Mismatch[];

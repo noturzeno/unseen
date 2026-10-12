@@ -144,6 +144,8 @@ unseen api PATCH /unresolved/<id> --data '{"waiting_on":"client","decision_note"
 
 A mixed item is split with a report: one `unresolved` entry per part, and the mixed item's id in `resolves`.
 Never work on an item waiting on `client` or `team`, and never guess the decision, until the user gives it to you.
+People can also record the decision on the Unresolved work page: the item then waits on `agent` and has a
+`decision` field (the answer, next to `decision_note`, the question). Carry it out as written.
 
 ## 3b3. PRD vs design mismatches
 

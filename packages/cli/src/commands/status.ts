@@ -92,7 +92,7 @@ export async function status(opts: StatusOptions, ctx: Context): Promise<number>
     ctx.out('');
     ctx.out(`Open unresolved work (${summary.open_unresolved}). Close items you fix with "resolves": [id] in a report:`);
     const tag = { client: '[waiting on the client] ', team: '[waiting on the team] ', agent: '' } as const;
-    dashboard.unresolved.forEach((u) => ctx.out(`  #${u.id} ${u.waiting_on ? tag[u.waiting_on] : u.waiting_on === null ? '[not sorted] ' : ''}${u.decision_note && u.waiting_on !== 'agent' ? `${u.decision_note} — ` : ''}${u.text}${u.report_id ? ` (from report #${u.report_id})` : ''}`));
+    dashboard.unresolved.forEach((u) => ctx.out(`  #${u.id} ${u.waiting_on ? tag[u.waiting_on] : u.waiting_on === null ? '[not sorted] ' : ''}${u.decision_note && u.waiting_on !== 'agent' ? `${u.decision_note} — ` : ''}${u.text}${u.decision ? ` — Decided: ${u.decision}` : ''}${u.report_id ? ` (from report #${u.report_id})` : ''}`));
     const w = summary.unresolved_waiting_on;
     if (w?.client || w?.team) ctx.out(`  Don't work on items waiting on the client (${w.client}) or the team (${w.team}) until you're given the decision.`);
   }

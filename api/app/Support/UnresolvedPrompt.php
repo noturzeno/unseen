@@ -4,6 +4,7 @@ namespace App\Support;
 
 use App\Models\Project;
 use App\Models\UnresolvedItem;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
 
 /**
@@ -16,7 +17,7 @@ final class UnresolvedPrompt
 
     public static function forItem(UnresolvedItem $item): string
     {
-        $item->loadMissing(['project', 'report']);
+        $item->loadMissing(['project', 'report', 'decidedBy:id,name']);
 
         return self::render('agent.unresolved-prompt', [
             'project' => self::oneLine($item->project->name),
@@ -32,10 +33,12 @@ final class UnresolvedPrompt
      */
     public static function forAll(Project $project, Collection $items, int $total): string
     {
+        $items = EloquentCollection::make($items->take(self::MAX_ITEMS)->all())->loadMissing('decidedBy:id,name');
+
         return self::render('agent.unresolved-prompt', [
             'project' => self::oneLine($project->name),
             'projectId' => $project->id,
-            'items' => $items->take(self::MAX_ITEMS),
+            'items' => $items,
             'more' => max(0, $total - self::MAX_ITEMS),
             'single' => false,
         ]);

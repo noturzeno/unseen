@@ -89,7 +89,9 @@ whichever platform is selected.
   Items that need **your decision** (red) or **the client's** (orange) are badged and listed first, with what is
   needed. On the Unresolved work page, the four tiles at the top (*Waiting on you*, *Waiting on the client*,
   *Not sorted yet*, *Agent can do*) filter the list. Client items have **Copy message for client**. Items needing
-  a decision have **Copy prompt with decision**: fill in the blank before pasting it to your agent. If items aren't
+  a decision have **Decide** (or **Record client's answer**): write the decision and click **Save decision**. It
+  is saved with your name and date, the item moves to *Agent can do*, and its **Copy prompt** / **Proceed** now
+  tell the agent to carry out that decision. **Change** next to a decision edits it. If items aren't
   sorted yet, **Copy prompt** / **Proceed** on the "not sorted" card asks your agent to sort and split them.
   **View all** shows open and closed items and who closed each.
 

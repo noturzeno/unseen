@@ -4,7 +4,12 @@ Resolve open item #{!! $item->id !!} in the Unseen project "{!! $project !!}" (p
 
 {!! $item->text !!}
 
-@if ($item->needsDecision())
+@if ($item->decision)
+{!! $item->decidedBy?->name ?? 'A person' !!} decided{!! $item->decision_note ? ' ('.$item->decision_note.')' : '' !!}:
+{!! $item->decision !!}
+Carry out this decision. Don't second-guess it; if it can't be done as decided, stop and tell me why.
+
+@elseif ($item->needsDecision())
 This item waits on {!! $item->waiting_on->value === 'client' ? 'the client' : 'me (my team)' !!}@if ($item->decision_note): {!! $item->decision_note !!}@endif.
 The decision: ___ (fill this in before sending; if it is still blank, don't start: tell me what you need instead.)
 
@@ -17,6 +22,9 @@ Work through the open items in the Unseen project "{!! $project !!}" (project #{
 
 @foreach ($items->reject(fn ($i) => $i->needsDecision()) as $item)
 - #{!! $item->id !!}: {!! \Illuminate\Support\Str::limit(preg_replace('/\s+/', ' ', $item->text), 600) !!}
+@if ($item->decision)
+  Decided ({!! $item->decidedBy?->name ?? 'a person' !!}): {!! \Illuminate\Support\Str::limit(preg_replace('/\s+/', ' ', $item->decision), 600) !!} Carry this out as decided.
+@endif
 @endforeach
 @php($waiting = $items->filter(fn ($i) => $i->needsDecision()))
 @if ($waiting->isNotEmpty())

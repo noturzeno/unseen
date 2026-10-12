@@ -29,6 +29,7 @@ class UnresolvedItem extends Model
             'resolved_at' => 'datetime',
             'resolved_source' => ClaimSource::class,
             'waiting_on' => WaitingOn::class,
+            'decided_at' => 'datetime',
         ];
     }
 
@@ -45,6 +46,12 @@ class UnresolvedItem extends Model
     public function resolvedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'resolved_by');
+    }
+
+    /** The person who answered the item's question (`decision`) on the Unresolved page. */
+    public function decidedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'decided_by');
     }
 
     public function resolvedReport(): BelongsTo

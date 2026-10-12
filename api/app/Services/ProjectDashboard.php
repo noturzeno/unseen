@@ -180,7 +180,7 @@ class ProjectDashboard
      *
      * Items waiting on the client or the team come first: someone has to act on those.
      *
-     * @return Collection<int, array{id: int, text: string, waiting_on: ?WaitingOn, decision_note: ?string, report_id: ?int, reported_at: \DateTimeInterface}>
+     * @return Collection<int, array{id: int, text: string, waiting_on: ?WaitingOn, decision_note: ?string, decision: ?string, report_id: ?int, reported_at: \DateTimeInterface}>
      */
     public function unresolved(Project $project, int $limit = 10): Collection
     {
@@ -194,6 +194,7 @@ class ProjectDashboard
                 'text' => $item->text,
                 'waiting_on' => $item->waiting_on,
                 'decision_note' => $item->decision_note,
+                'decision' => $item->decision,
                 'report_id' => $item->development_report_id,
                 'reported_at' => $item->created_at,
             ]);

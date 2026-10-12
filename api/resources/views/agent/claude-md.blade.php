@@ -69,7 +69,8 @@ view it, and only CI test runs verify features.
   must decide, confirm or provide something; `team`: I or my team must decide or provide access, keys or a manual
   step; `agent`: no decision needed. Sort older items with
   `unseen api PATCH /unresolved/<id> --data '{"waiting_on":"…","decision_note":"…"}'`. Never work on an item waiting
-  on the client or the team until I give you the decision.
+  on the client or the team until I give you the decision. An item with a `decision` was decided by a person in
+  Unseen: carry out that decision as written.
 - After adding or removing routes, models, pages, components or tests, run `unseen scan`, then review
   the pending suggestions (`unseen api GET /projects/{!! $project->id !!}/suggestions`) and accept, merge or
   dismiss each (`unseen api POST /suggestions/<id>/accept`, `/merge` with `{"feature_id":…}`, `/dismiss`).
