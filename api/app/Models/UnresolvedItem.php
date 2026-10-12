@@ -21,6 +21,9 @@ class UnresolvedItem extends Model
 
     public const RESOLVED = 'resolved';
 
+    /** Closed by a person without being done (reason in resolution_note). Never handed to the agent. */
+    public const IGNORED = 'ignored';
+
     protected $guarded = ['id'];
 
     protected function casts(): array

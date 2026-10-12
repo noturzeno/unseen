@@ -9,7 +9,7 @@ use App\Models\UnresolvedItem;
 use App\Models\User;
 
 /**
- * Deciding, closing and reopening unresolved work. Each closure records who or what closed it,
+ * Deciding, closing, ignoring and reopening unresolved work. Each closure records who or what closed it,
  * since an agent saying "fixed" is a claim, just like any other report content.
  */
 class UnresolvedItemService
@@ -41,6 +41,26 @@ class UnresolvedItemService
             'decision' => $decision,
             'decided_by' => $user->id,
             'decided_at' => now(),
+        ]);
+    }
+
+    /**
+     * A person closes an open item without it being done. Reports can't resolve it afterwards
+     * (resolve() only closes open items); reopen() brings it back.
+     */
+    public function ignore(UnresolvedItem $item, string $reason, User $user): void
+    {
+        if (! $item->isOpen()) {
+            return;
+        }
+
+        $item->update([
+            'status' => UnresolvedItem::IGNORED,
+            'resolved_at' => now(),
+            'resolved_by' => $user->id,
+            'resolved_source' => ClaimSource::UserEntered,
+            'resolved_report_id' => null,
+            'resolution_note' => $reason,
         ]);
     }
 

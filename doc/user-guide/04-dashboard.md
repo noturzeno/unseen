@@ -91,7 +91,9 @@ whichever platform is selected.
   *Not sorted yet*, *Agent can do*) filter the list. Client items have **Copy message for client**. Items needing
   a decision have **Decide** (or **Record client's answer**): write the decision and click **Save decision**. It
   is saved with your name and date, the item moves to *Agent can do*, and its **Copy prompt** / **Proceed** now
-  tell the agent to carry out that decision. **Change** next to a decision edits it. If items aren't
+  tell the agent to carry out that decision. **Change** next to a decision edits it. **Ignore** (on any open item) closes it without doing it:
+  say why, and it moves to the *Ignored* tab with your reason. Ignored items are never handed to your agent and a
+  report can't close or reopen them; **Reopen** on the Ignored tab brings one back. If items aren't
   sorted yet, **Copy prompt** / **Proceed** on the "not sorted" card asks your agent to sort and split them.
   **View all** shows open and closed items and who closed each.
 

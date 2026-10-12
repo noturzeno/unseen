@@ -12,6 +12,9 @@
     <div class="filters">
         <button type="button" wire:click="$set('status', 'open')" @class(['btn', 'primary' => $current === 'open'])>Open ({{ $counts['open'] ?? 0 }})</button>
         <button type="button" wire:click="$set('status', 'resolved')" @class(['btn', 'primary' => $current === 'resolved'])>Done ({{ $counts['resolved'] ?? 0 }})</button>
+        @if (($counts['ignored'] ?? 0) > 0 || $current === 'ignored')
+            <button type="button" wire:click="$set('status', 'ignored')" @class(['btn', 'primary' => $current === 'ignored'])>Ignored ({{ $counts['ignored'] ?? 0 }})</button>
+        @endif
     </div>
 
     @if ($current === 'open' && ($counts['open'] ?? 0) > 0)
@@ -85,7 +88,7 @@
 
     <div class="card">
         @if ($items->isEmpty())
-            <p class="muted">{{ $current === 'open' ? 'Nothing open.' : 'Nothing closed yet.' }}</p>
+            <p class="muted">{{ match ($current) { 'open' => 'Nothing open.', 'ignored' => 'Nothing ignored.', default => 'Nothing closed yet.' } }}</p>
         @else
             <ul class="plain">
                 @foreach ($items as $item)
@@ -97,7 +100,7 @@
                         </li>
                     @endif
                     <li wire:key="item-{{ $item->id }}" @class(['unresolved-item', 'waiting-'.$group => $current === 'open'])
-                        x-data="{ deciding: false }" x-on:decided.window="if ($event.detail.id === {{ $item->id }}) deciding = false">
+                        x-data="{ mode: null }" x-on:decided.window="if ($event.detail.id === {{ $item->id }}) mode = null">
                         @if ($current === 'open' && $item->waiting_on)
                             <span class="badge decision {{ $item->waiting_on->tone() }}">{{ $item->waiting_on->label() }}</span>
                         @endif
@@ -110,7 +113,7 @@
                                 @if ($item->decision)
                                     <div class="decided"><strong>Decided:</strong> {{ $item->decision }}
                                         <span class="muted small">· {{ $item->decidedBy?->name ?? 'Someone' }}, {{ $item->decided_at?->format('j M Y') }}</span>
-                                        @if ($current === 'open') @can('update', $project) <button class="btn link small" type="button" x-on:click="deciding = ! deciding; $wire.decisions[{{ $item->id }}] ??= @js($item->decision)">Change</button> @endcan @endif
+                                        @if ($current === 'open') @can('update', $project) <button class="btn link small" type="button" x-on:click="mode = mode === 'decide' ? null : 'decide'; $wire.decisions[{{ $item->id }}] ??= @js($item->decision)">Change</button> @endcan @endif
                                     </div>
                                 @endif
                             </div>
@@ -123,7 +126,7 @@
                             @endif
                             @if (isset($prompts[$item->id]) && $item->needsDecision())
                                 @can('update', $project)
-                                    <button class="btn sm primary" type="button" x-on:click="deciding = ! deciding; $nextTick(() => deciding && $refs.decision.focus())"
+                                    <button class="btn sm primary" type="button" x-on:click="mode = mode === 'decide' ? null : 'decide'; $nextTick(() => mode && $refs.decision.focus())"
                                         title="Write the decision here. The agent's prompt is then rebuilt with it">{{ $item->waiting_on === \App\Enums\WaitingOn::Client ? 'Record client\'s answer' : 'Decide' }}</button>
                                 @endcan
                             @elseif (isset($prompts[$item->id]))
@@ -134,18 +137,27 @@
                                 </button>
                                 <livewire:proceed-button :project="$project" kind="item" :ref="$item->id" :small="true" :key="'proceed-item-'.$item->id" />
                             @endif
+                            @if ($current === 'open')
+                                @can('update', $project)
+                                    <button class="btn sm ghost" type="button" title="Close this item without doing it: it won't be handed to your agent"
+                                        x-on:click="mode = mode === 'ignore' ? null : 'ignore'; $nextTick(() => mode && $refs.decision.focus())">Ignore</button>
+                                @endcan
+                            @endif
                         </div>
                         @if ($current === 'open')
                             @can('update', $project)
-                                <form class="decide-form" wire:submit="decide({{ $item->id }})" x-show="deciding" x-cloak>
-                                    <label for="decision-{{ $item->id }}">{{ $item->waiting_on === \App\Enums\WaitingOn::Client ? 'What did the client decide?' : 'Your decision' }}</label>
+                                <form class="decide-form" x-on:submit.prevent="$wire[mode === 'ignore' ? 'ignore' : 'decide']({{ $item->id }})" x-show="mode" x-cloak>
+                                    <label for="decision-{{ $item->id }}" x-text="mode === 'ignore' ? 'Why ignore it?' : @js($item->waiting_on === \App\Enums\WaitingOn::Client ? 'What did the client decide?' : 'Your decision')"></label>
                                     <textarea id="decision-{{ $item->id }}" x-ref="decision" wire:model="decisions.{{ $item->id }}" rows="3" maxlength="2000"
-                                        placeholder="e.g. Keep the extras: add them to the feature's description and criteria."></textarea>
+                                        :placeholder="mode === 'ignore' ? 'e.g. Not needed: the extras stay as they are.' : 'e.g. Keep the extras: add them to the feature\'s description and criteria.'"></textarea>
                                     @error('decisions.'.$item->id) <div class="error">{{ $message }}</div> @enderror
-                                    <p class="hint">Saved with your name. The item then moves to what your agent can do, and its prompt includes this decision.</p>
+                                    <p class="hint" x-text="mode === 'ignore'
+                                        ? 'Saved with your name. The item is closed as ignored: it leaves the open list and is never handed to your agent. You can reopen it from the Ignored tab.'
+                                        : 'Saved with your name. The item then moves to what your agent can do, and its prompt includes this decision.'"></p>
                                     <div class="form-actions">
-                                        <button class="btn primary sm" type="submit" wire:loading.attr="disabled">Save decision</button>
-                                        <button class="btn ghost sm" type="button" x-on:click="deciding = false">Cancel</button>
+                                        <button class="btn sm" :class="mode === 'ignore' ? 'danger' : 'primary'" type="submit" wire:loading.attr="disabled"
+                                            x-text="mode === 'ignore' ? 'Ignore item' : 'Save decision'">Save decision</button>
+                                        <button class="btn ghost sm" type="button" x-on:click="mode = null">Cancel</button>
                                     </div>
                                 </form>
                             @endcan
@@ -154,6 +166,14 @@
                             @if ($item->report) From <a href="{{ route('reports.show', $item->report) }}" wire:navigate>report #{{ $item->report->id }}</a> · @endif
                             {{ $item->created_at->diffForHumans() }}
                         </div>
+                        @if ($current === 'ignored')
+                            <div class="small">
+                                <span class="badge">Ignored</span>
+                                {{ $item->resolvedBy?->name ?? 'Someone' }} · {{ $item->resolved_at?->diffForHumans() }}
+                                @can('update', $project) · <button class="btn link small" type="button" wire:click="reopen({{ $item->id }})">Reopen</button> @endcan
+                                @if ($item->resolution_note) <div>Reason: {{ $item->resolution_note }}</div> @endif
+                            </div>
+                        @endif
                         @if ($current === 'resolved')
                             <div class="small">
                                 <span class="badge ok">Done</span>

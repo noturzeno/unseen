@@ -22,7 +22,7 @@ class UnresolvedItemController extends Controller
         Gate::authorize('view', $project);
 
         $filters = $request->validate([
-            'status' => [Rule::in([UnresolvedItem::OPEN, UnresolvedItem::RESOLVED])],
+            'status' => [Rule::in([UnresolvedItem::OPEN, UnresolvedItem::RESOLVED, UnresolvedItem::IGNORED])],
             'waiting_on' => [Rule::in([...array_column(WaitingOn::cases(), 'value'), 'unsorted'])],
             'per_page' => ['integer', 'min:1', 'max:100'],
         ]);
@@ -69,6 +69,8 @@ class UnresolvedItemController extends Controller
     public function reopen(UnresolvedItem $item): JsonResponse
     {
         Gate::authorize('update', $item->project);
+        // A person ignored it: only a person brings it back (Unresolved page, Ignored tab).
+        abort_if($item->status === UnresolvedItem::IGNORED, 422, 'This item was ignored by a person. Only a person can reopen it, in Unseen.');
 
         $this->items->reopen($item);
 

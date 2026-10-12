@@ -84,6 +84,46 @@ class UnresolvedDecisionTest extends TestCase
             ->assertOk()->assertJsonPath('data.0.decision', 'Client says: remove it.');
     }
 
+    public function test_ignoring_closes_the_item_with_its_reason_and_keeps_it_from_the_agent(): void
+    {
+        $item = $this->item();
+
+        Livewire::test(UnresolvedIndex::class, ['project' => $this->project])
+            ->assertSee('Ignore')
+            ->call('ignore', $item->id)
+            ->assertHasErrors(["decisions.{$item->id}" => 'required'])
+            ->set("decisions.{$item->id}", 'Not needed: leave the ad unlock as it is.')
+            ->call('ignore', $item->id)
+            ->assertHasNoErrors()
+            ->assertDontSee('A Basic member can unlock')
+            ->set('status', 'ignored')
+            ->assertSee('A Basic member can unlock')
+            ->assertSee('Reason: Not needed: leave the ad unlock as it is.');
+
+        $item->refresh();
+        $this->assertSame([UnresolvedItem::IGNORED, $this->user->id, 'Not needed: leave the ad unlock as it is.'], [$item->status, $item->resolved_by, $item->resolution_note]);
+        $this->assertFalse(NextSteps::for($this->project)->contains(fn ($s) => in_array($s['kind'], ['unresolved', 'defect', 'sort'], true)));
+
+        // Agents can't resolve or reopen it; a person can reopen it.
+        Sanctum::actingAs($this->user, ['*']);
+        $this->postJson("/api/v1/unresolved/{$item->id}/reopen")->assertUnprocessable();
+        $this->postJson("/api/v1/projects/{$this->project->id}/reports", ['summary' => 'Done', 'resolves' => [$item->id]])->assertCreated();
+        $this->assertSame(UnresolvedItem::IGNORED, $item->fresh()->status);
+
+        Livewire::test(UnresolvedIndex::class, ['project' => $this->project])->set('status', 'ignored')->call('reopen', $item->id);
+        $this->assertTrue($item->fresh()->isOpen());
+    }
+
+    public function test_every_open_item_has_an_ignore_button(): void
+    {
+        foreach ([WaitingOn::Team, WaitingOn::Client, WaitingOn::Agent, null] as $waiting) {
+            $this->project->unresolvedItems()->create(['text' => 'Item '.($waiting?->value ?? 'unsorted'), 'status' => UnresolvedItem::OPEN, 'waiting_on' => $waiting]);
+        }
+
+        $html = $this->get("/projects/{$this->project->id}/unresolved")->assertOk()->getContent();
+        $this->assertSame(4, substr_count($html, '>Ignore</button>'));
+    }
+
     public function test_people_who_cant_edit_the_project_cant_decide(): void
     {
         $item = $this->item();
