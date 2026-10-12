@@ -4,6 +4,7 @@ namespace Tests\Feature\Web;
 
 use App\Enums\ClaimSource;
 use App\Enums\FeatureStatus;
+use App\Enums\VerificationStatus;
 use App\Livewire\FeatureDetail;
 use App\Models\Feature;
 use App\Models\Project;
@@ -54,6 +55,18 @@ class IgnoreFeatureTest extends TestCase
         $change = $feature->statusHistory()->first();
         $this->assertSame(['not_implemented', 'ignored', 'Subscriptions are out of the MVP.', $this->user->id, ClaimSource::UserEntered],
             [$change->from_value, $change->to_value, $change->note, $change->user_id, $change->source]);
+    }
+
+    public function test_verified_features_show_no_actions(): void
+    {
+        $feature = Feature::factory()->for($this->project)->withStatus(FeatureStatus::Implemented, VerificationStatus::Verified)->create();
+
+        Livewire::test(FeatureDetail::class, ['feature' => $feature])
+            ->assertSee("Nothing to do: it's built and verified", false)
+            // The next-step card's prompt, copy/preview, Proceed and Ignore are gone (the diagrams card keeps its own).
+            ->assertDontSee('aria-label="Prompt for your coding agent"', false)
+            ->assertDontSee('Decide this feature won')
+            ->assertDontSee('x-ref="nextPrompt"', false);
     }
 
     public function test_restoring_brings_back_the_status_it_had_before(): void

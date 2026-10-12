@@ -41,6 +41,19 @@
         @if ($ignored?->note) <p class="decision-reason">{{ $ignored->note }}</p> @endif
         <p class="hint">It's left out of next steps and progress, and coding agents can't change its status.</p>
     </div>
+    @elseif ($next['action'] === 'extend')
+    {{-- Implemented and verified: nothing for the agent to do, so no prompt or actions --}}
+    <div class="card next-step done-step">
+        <div class="next-row">
+            <span class="connect-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+            </span>
+            <div class="next-text">
+                <span class="muted small">Next step</span>
+                <strong>Nothing to do: it's built and verified</strong>
+            </div>
+        </div>
+    </div>
     @else
     {{-- Next step: a prompt for the project's coding agent (no token in it; the repo is already linked) --}}
     <div class="card next-step" x-data="{ copied: false, open: false, ignoring: false }">
