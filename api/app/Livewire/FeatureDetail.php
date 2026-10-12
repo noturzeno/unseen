@@ -2,16 +2,19 @@
 
 namespace App\Livewire;
 
+use App\Enums\FeatureStatus;
 use App\Models\Feature;
 use App\Services\FeatureLifecycle;
+use App\Services\FeatureStatusService;
 use App\Support\DiagramPrompt;
 use App\Support\FeaturePrompt;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Component;
 
 /**
- * Read-only feature page. Coding agents change features through the API (statuses,
- * criteria, checks, diagrams); trusted test runs verify them. Nothing here writes data.
+ * Feature page. Coding agents change features through the API (statuses, criteria, checks,
+ * diagrams); trusted test runs verify them. The one thing people do here is decide a feature
+ * won't be built (ignore it, with a reason kept in its history) or bring it back into scope.
  */
 class FeatureDetail extends Component
 {
@@ -20,9 +23,30 @@ class FeatureDetail extends Component
     /** Which diagram tab is shown (view state only). */
     public ?int $shownDiagram = null;
 
+    /** Why the feature won't be built: recorded with the decision. */
+    public string $ignoreReason = '';
+
     public function mount(Feature $feature): void
     {
         Gate::authorize('view', $feature->project);
+    }
+
+    public function ignore(FeatureStatusService $statuses): void
+    {
+        Gate::authorize('update', $this->feature->project);
+        abort_if($this->feature->status === FeatureStatus::Ignored, 422);
+        $this->validate(['ignoreReason' => ['required', 'string', 'max:2000']], [], ['ignoreReason' => 'reason']);
+
+        $statuses->ignore($this->feature, auth()->user(), trim($this->ignoreReason));
+        $this->reset('ignoreReason');
+    }
+
+    public function restore(FeatureStatusService $statuses): void
+    {
+        Gate::authorize('update', $this->feature->project);
+        abort_if($this->feature->status !== FeatureStatus::Ignored, 422);
+
+        $statuses->restore($this->feature, auth()->user());
     }
 
     public function render()
@@ -50,6 +74,8 @@ class FeatureDetail extends Component
             'diagramSync' => DiagramPrompt::build($this->feature, $diagrams),
             'repositoryEvidence' => $this->feature->suggestions()->with('lastScan')->get(),
             'next' => FeaturePrompt::build($this->feature),
+            'ignored' => $this->feature->status === FeatureStatus::Ignored
+                ? $history->where('field', 'status')->firstWhere('to_value', FeatureStatus::Ignored->value) : null,
             'mismatches' => ! $this->feature->project->mismatches_enabled ? collect() : $this->feature->specMismatches()->with('decidedBy:id,name')
                 ->orderByRaw("case status when 'open' then 0 when 'decided' then 1 else 2 end")->latest('updated_at')->get(),
             'tickets' => $this->feature->tickets()->with('latestFeedback')->withCount('comments')

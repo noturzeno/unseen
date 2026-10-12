@@ -169,6 +169,8 @@ class ProjectOverview extends Component
             ->withCount('checks')
             ->when($search !== '', fn ($q) => $q->whereRaw("lower(name) like ? escape '\\'", ['%'.mb_strtolower(addcslashes($search, '%_\\')).'%']))
             ->when($status, fn ($q) => $q->where('status', $status))
+            // Ignored features (decided not to build) only show when asked for.
+            ->when($status !== FeatureStatus::Ignored, fn ($q) => $q->whereNot('status', FeatureStatus::Ignored))
             ->when($this->status === self::UNBUILT, fn ($q) => $q->where('status', '!=', FeatureStatus::Implemented))
             ->when($verification, fn ($q) => $q->where('verification_status', $verification))
             ->when($this->verification === self::UNVERIFIED, fn ($q) => $q->where('verification_status', '!=', VerificationStatus::Verified))

@@ -54,7 +54,7 @@ class StoreDevelopmentReportRequest extends FormRequest
 
             'features' => ['array', 'max:100'],
             'features.*.id' => ['required', 'integer', 'distinct', Rule::exists('features', 'id')->where('project_id', $project->id)],
-            'features.*.status' => ['nullable', Rule::enum(FeatureStatus::class)],
+            'features.*.status' => ['nullable', Rule::enum(FeatureStatus::class)->only(FeatureStatus::agentSettable())],
             'features.*.note' => ['nullable', 'string', 'max:2000'],
 
             'changed_files' => ['array', 'max:2000'],

@@ -28,7 +28,8 @@ use Illuminate\Support\Collection;
  * Progress calculation (documented in README "Progress calculation"):
  *   implemented_percent = floor(features with status `implemented` / all tracked features * 100)
  *   verified_percent    = floor(features `implemented` AND `verified` / all tracked features * 100)
- * Every feature counts, whatever its status. Percentages are rounded down so a project
+ * Every feature counts, whatever its status, except `ignored` ones: a person decided they won't
+ * be built, so they are left out of the totals and progress. Percentages are rounded down so a project
  * never shows 100% before every feature qualifies. With no features, both are null
  * (unknown), not 0 or 100.
  *
@@ -74,7 +75,7 @@ class ProjectDashboard
      */
     public static function scopeNeedsAttention(Builder $query): Builder
     {
-        return $query->where(fn (Builder $q) => $q
+        return $query->whereNot('status', FeatureStatus::Ignored)->where(fn (Builder $q) => $q
             ->where('status', FeatureStatus::Blocked)
             ->orWhereIn('verification_status', [VerificationStatus::Failed, VerificationStatus::NeedsVerification]));
     }
@@ -84,7 +85,7 @@ class ProjectDashboard
         $byStatus = $this->countBy($project, 'status', FeatureStatus::cases());
         $byVerification = $this->countBy($project, 'verification_status', VerificationStatus::cases());
 
-        $total = array_sum($byStatus);
+        $total = array_sum($byStatus) - $byStatus[FeatureStatus::Ignored->value];
         $implemented = $byStatus[FeatureStatus::Implemented->value];
         $verified = $this->features($project)
             ->where('status', FeatureStatus::Implemented)
@@ -269,6 +270,7 @@ class ProjectDashboard
         $verified = VerificationStatus::Verified->value;
 
         $rows = $this->features($project)
+            ->whereNot('status', FeatureStatus::Ignored)
             ->toBase()
             ->selectRaw('category_id, count(*) as total')
             ->selectRaw('sum(case when status = ? then 1 else 0 end) as implemented', [$implemented])
@@ -361,7 +363,7 @@ class ProjectDashboard
     public function byPlatform(Project $project): array
     {
         return array_map(function (Platform $platform) use ($project) {
-            $features = fn () => $project->features()->onPlatform($platform);
+            $features = fn () => $project->features()->onPlatform($platform)->whereNot('status', FeatureStatus::Ignored);
             $total = $features()->count();
             $implemented = $features()->where('status', FeatureStatus::Implemented)->count();
             $verified = $features()->where('status', FeatureStatus::Implemented)->where('verification_status', VerificationStatus::Verified)->count();
@@ -373,7 +375,7 @@ class ProjectDashboard
                 'implemented' => $implemented,
                 'verified' => $verified,
                 'needs_attention' => self::scopeNeedsAttention($features()->getQuery())->count(),
-                'only' => $project->features()->whereJsonContains('platforms', $platform->value)->count(), // tagged with it
+                'only' => $project->features()->whereNot('status', FeatureStatus::Ignored)->whereJsonContains('platforms', $platform->value)->count(), // tagged with it
                 'progress' => self::progress($implemented, $verified, $total),
             ];
         }, $project->platformList());

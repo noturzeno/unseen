@@ -23,8 +23,27 @@
         </div>
     </div>
 
+    @if ($feature->status === \App\Enums\FeatureStatus::Ignored)
+    {{-- A person decided it won't be built: no next step for the agent, only the decision --}}
+    <div class="card next-step ignored-decision">
+        <div class="next-row">
+            <span class="connect-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></svg>
+            </span>
+            <div class="next-text">
+                <span class="muted small">Decision{{ $ignored ? ' · '.($ignored->user?->name ?? 'Someone').', '.$ignored->created_at->format('j M Y') : '' }}</span>
+                <strong>Ignored: this feature won't be built</strong>
+            </div>
+            @can('update', $feature->project)
+                <button class="btn" type="button" wire:click="restore" wire:loading.attr="disabled">Bring back into scope</button>
+            @endcan
+        </div>
+        @if ($ignored?->note) <p class="decision-reason">{{ $ignored->note }}</p> @endif
+        <p class="hint">It's left out of next steps and progress, and coding agents can't change its status.</p>
+    </div>
+    @else
     {{-- Next step: a prompt for the project's coding agent (no token in it; the repo is already linked) --}}
-    <div class="card next-step" x-data="{ copied: false, open: false }">
+    <div class="card next-step" x-data="{ copied: false, open: false, ignoring: false }">
         <div class="next-row">
             <span class="connect-icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17l6-6-6-6M12 19h8"/></svg>
@@ -39,12 +58,28 @@
                 <span x-show="! copied">Copy prompt</span><span x-show="copied" x-cloak>Copied ✓</span>
             </button>
             <livewire:proceed-button :project="$feature->project" kind="feature" :ref="$feature->id" :key="'proceed-feature-'.$feature->id" />
+            @can('update', $feature->project)
+                <button class="btn ghost" type="button" title="Decide this feature won't be built" x-on:click="ignoring = ! ignoring; $nextTick(() => ignoring && $refs.ignoreReason.focus())">Ignore</button>
+            @endcan
         </div>
         <div x-show="open" x-cloak>
             <textarea class="prompt" x-ref="nextPrompt" readonly aria-label="Prompt for your coding agent" x-on:focus="$el.select()">{{ $next['prompt'] }}</textarea>
             <p class="hint">Paste it into Claude Code (or another coding agent) in this project's repository. It contains no token.</p>
         </div>
+        @can('update', $feature->project)
+            <form class="ignore-form" wire:submit="ignore" x-show="ignoring" x-cloak>
+                <label for="ignore-reason">Why won't it be built?</label>
+                <textarea id="ignore-reason" x-ref="ignoreReason" wire:model="ignoreReason" maxlength="2000" rows="3" placeholder="e.g. Dropped from the MVP: subscriptions move to a later release."></textarea>
+                @error('ignoreReason') <div class="error">{{ $message }}</div> @enderror
+                <p class="hint">The reason is kept in the feature's history. Ignored features leave next steps and progress, and coding agents can't change them. You can bring it back any time.</p>
+                <div class="form-actions">
+                    <button class="btn danger" type="submit" wire:loading.attr="disabled">Ignore feature</button>
+                    <button class="btn ghost" type="button" x-on:click="ignoring = false">Cancel</button>
+                </div>
+            </form>
+        @endcan
     </div>
+    @endif
 
     {{-- Lifecycle at a glance --}}
     <div class="card lifecycle-card">
@@ -259,10 +294,15 @@
                             @php($item = $entry['item'])
                             @if ($entry['kind'] === 'change')
                                 <li class="small" wire:key="tl-c-{{ $item->id }}">
-                                    {{ $item->field === 'status' ? 'Implementation' : 'Verification' }}
-                                    {{ $item->from_value ? $changeLabel($item->from_value).' →' : 'set to' }}
-                                    <strong>{{ $changeLabel($item->to_value) }}</strong>
-                                    @if ($item->note) <div>{{ $item->note }}</div> @endif
+                                    @if ($item->field === 'status' && $item->to_value === 'ignored')
+                                        <strong>Decided not to build it</strong> ({{ $changeLabel($item->from_value) }} → ignored)
+                                        @if ($item->note) <div>Reason: {{ $item->note }}</div> @endif
+                                    @else
+                                        {{ $item->field === 'status' ? 'Implementation' : 'Verification' }}
+                                        {{ $item->from_value ? $changeLabel($item->from_value).' →' : 'set to' }}
+                                        <strong>{{ $changeLabel($item->to_value) }}</strong>
+                                        @if ($item->note) <div>{{ $item->note }}</div> @endif
+                                    @endif
                                     <div class="muted">{{ $item->source->label() }}{{ $item->user ? ' ('.$item->user->name.')' : '' }} · {{ $item->created_at->format('j M Y, H:i') }}</div>
                                 </li>
                             @else

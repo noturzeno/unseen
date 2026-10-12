@@ -38,7 +38,7 @@ class RepositoryScanController extends Controller
             'candidates.*.description' => ['nullable', 'string', 'max:2000'],
             'candidates.*.category' => ['nullable', 'string', 'max:255'],
             // What the project's docs say (e.g. an implementation matrix row); a default, not verification.
-            'candidates.*.status' => ['nullable', Rule::enum(FeatureStatus::class)],
+            'candidates.*.status' => ['nullable', Rule::enum(FeatureStatus::class)->only(FeatureStatus::agentSettable())],
             'candidates.*.evidence' => ['required', 'array', 'min:1', 'max:50'],
             'candidates.*.evidence.*.type' => ['required', Rule::in(self::EVIDENCE_TYPES)],
             'candidates.*.evidence.*.path' => ['required', 'string', 'max:1024'],

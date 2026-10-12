@@ -97,6 +97,13 @@ class DevelopmentReportService
                     'note' => $claim['note'] ?? null,
                 ]);
 
+                // A person decided it won't be built: the report is kept as evidence, the decision stands.
+                if ($feature->status === FeatureStatus::Ignored) {
+                    $feature->touch();
+
+                    continue;
+                }
+
                 $newStatus = $claimed !== null && $claimed !== $feature->status ? $claimed : null;
                 $resetVerification = in_array($feature->verification_status, [VerificationStatus::Verified, VerificationStatus::Failed], true)
                     ? VerificationStatus::NeedsVerification

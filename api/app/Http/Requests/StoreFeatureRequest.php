@@ -33,7 +33,7 @@ class StoreFeatureRequest extends FormRequest
         return [
             'description' => ['nullable', 'string', 'max:10000'],
             'category_id' => ['nullable', 'integer', Rule::exists('feature_categories', 'id')->where('project_id', $projectId)],
-            'status' => [Rule::enum(FeatureStatus::class)],
+            'status' => [Rule::enum(FeatureStatus::class)->only(FeatureStatus::agentSettable())],
             // Verified and failed come only from trusted test runs (POST /projects/{id}/test-runs).
             'verification_status' => [Rule::enum(VerificationStatus::class)->only([VerificationStatus::NotChecked, VerificationStatus::NeedsVerification])],
             'status_note' => ['nullable', 'string', 'max:2000'],

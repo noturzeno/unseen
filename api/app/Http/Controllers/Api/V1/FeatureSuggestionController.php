@@ -55,7 +55,7 @@ class FeatureSuggestionController extends Controller
             'name' => ['sometimes', 'required', 'string', 'max:255'],
             'description' => ['sometimes', 'nullable', 'string', 'max:10000'],
             'category_id' => ['nullable', 'integer', Rule::exists('feature_categories', 'id')->where('project_id', $suggestion->project_id)],
-            'status' => [Rule::enum(FeatureStatus::class)],
+            'status' => [Rule::enum(FeatureStatus::class)->only(FeatureStatus::agentSettable())],
         ]);
 
         $feature = $this->reviews->accept($suggestion, $edits, $request->user());

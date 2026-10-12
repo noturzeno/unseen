@@ -26,6 +26,8 @@ view it, and only CI test runs verify features.
   - New feature: `unseen api POST /projects/{!! $project->id !!}/features --data '{"name":"…","description":"…","status":"in_progress","acceptance_criteria":["…"]}'`
   - Status: `unseen api PATCH /features/<id> --data '{"status":"implemented","status_note":"…"}'`
     (`implemented` only when fully built; `verified`/`failed` are refused, only test runs verify)
+  - `ignored` features were dropped by a person: don't build them or change their status. If one seems
+    needed after all, ask me.
   - Category: `unseen api POST /projects/{!! $project->id !!}/categories --data '{"name":"…"}'`, then `"category_id"` on the feature
 @if (count($project->platformList()) > 1)
   - Platforms: this project ships on {!! collect($project->platformList())->map(fn ($p) => $p->value)->join(', ') !!}. Add `"platforms":["ios"]` (any of those) to a

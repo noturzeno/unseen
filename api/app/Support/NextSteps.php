@@ -41,7 +41,7 @@ final class NextSteps
         $features = fn () => $project->features()->with(['project', 'category', 'acceptanceCriteria', 'checks.latestResult']);
 
         // Broken: verification failed.
-        foreach ($features()->where('verification_status', VerificationStatus::Failed)->orderBy('updated_at')->limit(3)->get() as $f) {
+        foreach ($features()->where('verification_status', VerificationStatus::Failed)->whereNot('status', FeatureStatus::Ignored)->orderBy('updated_at')->limit(3)->get() as $f) {
             $add(self::HIGH, 'fix', "Fix “{$f->name}”", 'Verification failed: its tests show it is broken.', route('features.show', $f), FeaturePrompt::build($f)['prompt'], 'feature', $f->id);
         }
 

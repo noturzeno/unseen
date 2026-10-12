@@ -46,7 +46,7 @@ class ProjectDashboardTest extends TestCase
         $summary = app(ProjectDashboard::class)->summary($project);
 
         $this->assertSame(8, $summary['total']);
-        $this->assertSame(['planned' => 3, 'in_progress' => 0, 'implemented' => 4, 'blocked' => 1, 'not_implemented' => 0], $summary['by_status']);
+        $this->assertSame(['planned' => 3, 'in_progress' => 0, 'implemented' => 4, 'blocked' => 1, 'not_implemented' => 0, 'ignored' => 0], $summary['by_status']);
         $this->assertSame(['not_checked' => 4, 'needs_verification' => 1, 'verified' => 2, 'failed' => 1], $summary['by_verification_status']);
         $this->assertSame(2, $summary['implemented_and_verified']);
         $this->assertSame(3, $summary['needs_attention']); // failed + blocked + needs_verification

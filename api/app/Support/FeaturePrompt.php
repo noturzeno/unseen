@@ -22,6 +22,7 @@ final class FeaturePrompt
         $feature->loadMissing(['project', 'category', 'acceptanceCriteria', 'checks.latestResult']);
 
         $action = match (true) {
+            $feature->status === FeatureStatus::Ignored => 'ignored',
             $feature->verification_status === VerificationStatus::Failed => 'fix',
             $feature->status === FeatureStatus::Implemented && $feature->verification_status === VerificationStatus::Verified => 'extend',
             $feature->status === FeatureStatus::Implemented => 'verify',
@@ -37,9 +38,14 @@ final class FeaturePrompt
             'verify' => 'Get it verified',
             'unblock' => 'Unblock it',
             'revisit' => 'Revisit it',
+            'ignored' => 'Nothing to build: ignored',
             'continue' => 'Continue building it',
             default => 'Start building it',
         };
+
+        if ($action === 'ignored') {
+            return ['action' => $action, 'label' => $label, 'prompt' => self::ignored($feature)];
+        }
 
         $roadmap = RoadmapItem::query()
             ->where('feature_id', $feature->id)
@@ -58,6 +64,17 @@ final class FeaturePrompt
         ])->render();
 
         return ['action' => $action, 'label' => $label, 'prompt' => trim(preg_replace("/\n{3,}/", "\n\n", $prompt))."\n"];
+    }
+
+    /** An ignored feature has nothing to do: the prompt only tells the agent to leave it alone. */
+    private static function ignored(Feature $feature): string
+    {
+        $reason = $feature->statusHistory()->where('field', 'status')->where('to_value', FeatureStatus::Ignored->value)->value('note');
+
+        return 'The Unseen feature "'.self::oneLine($feature->name).'" (feature #'.$feature->id.' in project "'.self::oneLine($feature->project->name).'") is ignored: '
+            ."a person decided it won't be built.\n"
+            .($reason ? 'Their reason: '.self::oneLine($reason)."\n" : '')
+            ."Don't build, change or report on it. If you think it is needed after all, tell me why and stop.\n";
     }
 
     /** Names are user data inside a plain-text prompt: keep them on one line. */

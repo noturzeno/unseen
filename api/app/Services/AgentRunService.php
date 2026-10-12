@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\FeatureStatus;
 use App\Models\AgentRun;
 use App\Models\Project;
 use App\Models\UnresolvedItem;
@@ -79,6 +80,7 @@ class AgentRunService
         return match ($kind) {
             'feature' => (function () use ($project, $ref) {
                 $feature = $project->features()->findOrFail($ref);
+                abort_if($feature->status === FeatureStatus::Ignored, 422, 'This feature is ignored: there is nothing to build.');
                 $next = FeaturePrompt::build($feature);
 
                 return ["{$next['label']}: {$feature->name}", $next['prompt']];

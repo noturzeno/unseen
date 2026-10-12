@@ -13,7 +13,8 @@ Every feature has **two separate statuses**:
 | In progress | Someone (or an agent) is working on it |
 | Implemented | Marked as built |
 | Blocked | Can't continue (waiting on something) |
-| Not implemented | Checked and found missing, or decided against |
+| Not implemented | Checked and found missing |
+| Ignored | A person decided it won't be built (see [Ignore a feature](#ignore-a-feature)) |
 
 | Verification: *has it been shown to work?* | Meaning |
 |---|---|
@@ -102,6 +103,21 @@ feature, newest first. Every status change shows:
 
 > Features can't be deleted, so their history is always kept. A feature recorded by mistake is set to
 > **Not implemented** with a note.
+
+## Ignore a feature
+
+When a feature is no longer needed, open it and click **Ignore** next to the agent's next step. Say why
+(for example *"Dropped from the MVP"*) and click **Ignore feature**. The reason is saved as the decision in
+the feature's **Timeline**, with your name and the date.
+
+An ignored feature:
+- shows the decision instead of a next step, and Proceed can't send it to the agent
+- is left out of the feature count, progress, needs-attention and *What's next*
+- is hidden from the feature list unless you filter by **Ignored**
+- can't be changed by coding agents: they can't set or lift **Ignored**, and a report that mentions it is
+  kept as evidence without changing its status
+
+Changed your mind? Click **Bring back into scope** and it returns to the status it had before.
 
 ## Find features
 

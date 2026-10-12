@@ -15,7 +15,7 @@ use Illuminate\Support\Collection;
  * the last step is only "done" when the feature is implemented AND verified.
  *
  * Step states: done, current, upcoming, blocked (stuck on this step), failed (verification
- * failed), waiting (implemented, awaiting verification), stopped (marked not implemented).
+ * failed), waiting (implemented, awaiting verification), stopped (marked not implemented, or ignored).
  */
 class FeatureLifecycle
 {
@@ -43,6 +43,7 @@ class FeatureLifecycle
             FeatureStatus::InProgress => [1, 'current', 'Being built'],
             FeatureStatus::Blocked => [1, 'blocked', 'Blocked'],
             FeatureStatus::NotImplemented => [0, 'stopped', 'Marked not implemented'],
+            FeatureStatus::Ignored => [0, 'stopped', 'Ignored: won\'t be built'],
             FeatureStatus::Implemented => match ($feature->verification_status) {
                 VerificationStatus::Verified => [3, 'done', 'Checked and working'],
                 VerificationStatus::Failed => [3, 'failed', 'Verification failed'],

@@ -34,6 +34,7 @@ Prioritize **Claude Code first**. Keep the integration design open so other codi
     - `implemented`
     - `blocked`
     - `not_implemented`
+    - `ignored` (a person decided it won't be built; only people set it)
   - Support verification statuses such as:
     - `not_checked`
     - `needs_verification`

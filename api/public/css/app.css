@@ -403,6 +403,10 @@ textarea.prompt { height: 260px; min-height: 160px; font: .78rem/1.55 ui-monospa
 .next-text { flex: 1; min-width: 200px; display: flex; flex-direction: column; }
 .next-text strong { font-size: 1rem; font-weight: 600; }
 .next-step textarea.prompt { margin-top: 14px; }
+.ignore-form { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+.ignore-form .form-actions { display: flex; gap: 8px; margin-top: 10px; }
+.ignored-decision .decision-reason { margin: 12px 0 0; white-space: pre-line; }
+.ignored-decision .hint { margin-top: 8px; }
 .diagram-sync { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; }
 .diagrams-card .card-head { flex-wrap: wrap; align-items: center; }
 .diagrams-card textarea.prompt { margin-bottom: 12px; }

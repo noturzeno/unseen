@@ -20,6 +20,8 @@ use Illuminate\Validation\ValidationException;
  *     verification to `needs_verification` (the old check no longer applies).
  *  3. A feature becoming `implemented` while `not_checked` moves to
  *     `needs_verification`, so unverified work stays visible.
+ *  4. `ignored` is a person's decision: only a user (ClaimSource::UserEntered) can move a
+ *     feature into or out of it. Agents, scans and test runs can't bring it back into scope.
  * Rules 2 and 3 apply only when the caller does not set verification explicitly.
  */
 class FeatureStatusService
@@ -50,6 +52,12 @@ class FeatureStatusService
             }
         }
 
+        if ($newStatus !== $oldStatus && in_array(FeatureStatus::Ignored, [$oldStatus, $newStatus], true) && $source !== ClaimSource::UserEntered) {
+            throw ValidationException::withMessages([
+                'status' => ['This feature is ignored: a person decided it won\'t be built. Only a person can change that, on the feature page in Unseen.'],
+            ]);
+        }
+
         if ($newVerification === VerificationStatus::Verified && $newStatus !== FeatureStatus::Implemented) {
             throw ValidationException::withMessages([
                 'verification_status' => ['A feature can only be verified when its status is implemented.'],
@@ -72,6 +80,24 @@ class FeatureStatusService
 
             return $feature;
         });
+    }
+
+    /**
+     * Records a person's decision that the feature won't be built. The reason is kept in the history.
+     */
+    public function ignore(Feature $feature, User $user, string $reason): Feature
+    {
+        return $this->apply($feature, FeatureStatus::Ignored, null, ClaimSource::UserEntered, $user, $reason);
+    }
+
+    /**
+     * Brings an ignored feature back into scope, at the status it had before it was ignored.
+     */
+    public function restore(Feature $feature, User $user): Feature
+    {
+        $before = $feature->statusHistory()->where('field', 'status')->where('to_value', FeatureStatus::Ignored->value)->first()?->from_value;
+
+        return $this->apply($feature, FeatureStatus::tryFrom((string) $before) ?? FeatureStatus::Planned, null, ClaimSource::UserEntered, $user, 'Back in scope.');
     }
 
     private function record(Feature $feature, string $field, ?string $from, string $to, ClaimSource $source, ?User $user, ?string $note): void

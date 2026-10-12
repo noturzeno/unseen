@@ -252,6 +252,7 @@ The `summary` also includes other fields (e.g. `reports`, `pending_suggestions`)
 | `implemented` | Fully built | | `verified` | Confirmed working by a person or CI |
 | `blocked` | Can't proceed | | `failed` | Checked and not working |
 | `not_implemented` | Missing or dropped | | | |
+| `ignored` | A person decided it won't be built. Read-only for agents: don't build it, and don't change its status | | | |
 
 ## 5. The report format
 

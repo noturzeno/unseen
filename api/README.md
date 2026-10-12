@@ -142,7 +142,7 @@ decide which projects it can see.
 
 ### Feature statuses
 
-Implementation status (`planned`, `in_progress`, `implemented`, `blocked`, `not_implemented`) and
+Implementation status (`planned`, `in_progress`, `implemented`, `blocked`, `not_implemented`, `ignored`) and
 verification status (`not_checked`, `needs_verification`, `verified`, `failed`) are separate fields.
 All changes go through `App\Services\FeatureStatusService`, which records each change in
 `feature_status_history` with its source (`user_entered`, `agent_reported`, `repository_detected`, `test_verified`). The rules are:
@@ -330,7 +330,9 @@ implemented_percent = floor(implemented features / all tracked features × 100)
 verified_percent    = floor(features that are implemented AND verified / all tracked features × 100)
 ```
 
-- **Every tracked feature counts** in the total, whatever its status (including `not_implemented` and `blocked`).
+- **Every tracked feature counts** in the total, whatever its status (including `not_implemented` and `blocked`),
+  except `ignored` ones: a person decided they won't be built. Only people set or lift `ignored` (on the
+  feature page); the API refuses it from agents, and reports don't change an ignored feature's status.
 - Percentages are **rounded down**, so a project never shows 100% until every feature qualifies.
 - With **no features**, both values are `null`, shown as "progress unknown", not 0% or 100%.
 - Only explicit statuses count. Nothing is estimated or inferred.
