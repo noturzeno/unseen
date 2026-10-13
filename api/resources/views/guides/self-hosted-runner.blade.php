@@ -8,6 +8,7 @@
 
         <title>{{ config('app.name') }} · Run CI on your own Mac</title>
 
+        <link rel="alternate" type="text/markdown" href="{{ route('guides.self-hosted-runner.agent') }}" title="Agent reference">
         <link rel="stylesheet" href="{{ asset('css/app.css') }}?v={{ filemtime(public_path('css/app.css')) }}">
     </head>
     <body>
@@ -30,6 +31,13 @@
                 <p class="eyebrow">Guide · About 15 minutes</p>
                 <h1>Run CI on your own Mac</h1>
                 <p class="muted">If GitHub stops your jobs with <em>"recent account payments have failed or your spending limit needs to be increased"</em>, your private repository has used up its free Actions minutes. macOS jobs, such as iOS builds, use them 10 times faster than Linux jobs. A <strong>self-hosted runner</strong> lets your own Mac run the jobs instead: free, with no minute limit, and <code>unseen verify</code> keeps sending test results as before.</p>
+            </section>
+
+            <section class="card home-package" aria-labelledby="agent-title">
+                <h2 id="agent-title">Fastest: let your coding agent do it</h2>
+                <p class="muted">Paste this into Claude Code (or another coding agent) in the repository. It follows the <a href="{{ route('guides.self-hosted-runner.agent') }}">agent reference</a>, does the steps it can, and asks you for the few that need you: signing in, starting the runner and <code>sudo</code>.</p>
+                <pre class="home-code wrap"><code>Read {{ route('guides.self-hosted-runner.agent') }} and follow it to move this repository's CI onto this Mac.</code></pre>
+                <p class="muted small">Prefer to do it yourself? Follow the steps below.</p>
             </section>
 
             <section class="card" aria-labelledby="before-title">

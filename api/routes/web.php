@@ -30,6 +30,10 @@ Route::get('/', function () {
 
 // Public guide: running CI (and unseen verify) on a self-hosted Mac when GitHub Actions minutes run out.
 Route::view('/guides/self-hosted-runner', 'guides.self-hosted-runner')->name('guides.self-hosted-runner');
+// The same guide written for coding agents to fetch and follow, as Markdown.
+Route::get('/guides/self-hosted-runner.md', fn () => response()
+    ->view('guides.self-hosted-runner-agent', ['url' => rtrim(url('/'), '/')])
+    ->header('Content-Type', 'text/markdown; charset=UTF-8'))->name('guides.self-hosted-runner.agent');
 
 Route::middleware('guest')->group(function () {
     Route::livewire('/login', Login::class)->name('login');

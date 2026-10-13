@@ -26,6 +26,21 @@ class ExampleTest extends TestCase
             ->assertSee('npx --yes -p '.url('/downloads/unseen-cli.tgz').' unseen verify', false);
     }
 
+    public function test_self_hosted_runner_guide_has_a_markdown_reference_for_agents(): void
+    {
+        $this->get('/guides/self-hosted-runner')
+            ->assertSee(route('guides.self-hosted-runner.agent'));
+
+        $response = $this->get('/guides/self-hosted-runner.md')->assertOk();
+
+        $this->assertStringStartsWith('text/markdown', $response->headers->get('content-type'));
+        $response->assertSee('# Run this repository\'s CI on this Mac', false)
+            ->assertSee('ASK THE HUMAN')
+            ->assertSee('if: ${{ github.event_name', false)
+            ->assertSee('npx --yes -p '.url('/downloads/unseen-cli.tgz').' unseen verify', false)
+            ->assertDontSee('&#039;', false);
+    }
+
     public function test_guests_are_sent_to_login(): void
     {
         $this->get('/projects')->assertRedirect('/login');
