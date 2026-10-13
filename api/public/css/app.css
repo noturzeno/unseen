@@ -643,6 +643,8 @@ li.unresolved-item.waiting-client { border-left-color: var(--c-warn); }
 .decided { margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--border-strong); }
 @media (max-width: 760px) { .sides { grid-template-columns: 1fr; } }
 .mismatch-summary { border-top: 3px solid var(--c-warn); }
+.ci-notice { border-top: 3px solid var(--c-warn); background: var(--warn-bg); }
+.ci-notice .card-head { align-items: center; }
 .mismatch-summary .mismatch-list { margin-top: 10px; }
 
 /* ---------- Home (public landing page) ---------- */

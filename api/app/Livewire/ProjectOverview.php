@@ -49,6 +49,14 @@ class ProjectOverview extends Component
         Gate::authorize('view', $project);
     }
 
+    /** Hides the "run CI on a local Mac" notice for this person until the project is flagged again. */
+    public function dismissCiNotice(): void
+    {
+        Gate::authorize('view', $this->project);
+
+        $this->project->workspaceFor(auth()->user())->forceFill(['ci_notice_dismissed_at' => now()])->save();
+    }
+
     public function updating($property): void
     {
         if (in_array($property, ['status', 'verification', 'category', 'search', 'platform'], true)) {
@@ -199,6 +207,7 @@ class ProjectOverview extends Component
             'roadmap' => $roadmap->phases($this->project),
             'nextSteps' => NextSteps::for($this->project),
             'cliOutdated' => Cli::outdated($this->project, auth()->user()),
+            'ciNotice' => $this->project->showsCiNoticeTo(auth()->user()),
             'activity' => $dashboard->weeklyActivity($this->project),
             'categories' => $this->project->featureCategories()->withCount('features')->get(),
             'features' => $features,

@@ -30,6 +30,9 @@ class ProjectForm extends Component
     /** PRD vs design: off hides the tab, the dashboard card and the agent's instructions for it. */
     public bool $mismatches_enabled = true;
 
+    /** Out of GitHub Actions minutes: the dashboard then suggests running CI on a local Mac. Web only. */
+    public bool $actions_minutes_out = false;
+
     /** Where the repository is on the signed-in person's computer; their `unseen runner` opens Claude Code there. */
     public string $local_path = '';
 
@@ -46,6 +49,7 @@ class ProjectForm extends Component
             $this->fill(array_map(fn ($v) => (string) $v, $project->only(['name', 'description', 'repository_url', 'tech_stack'])));
             $this->platforms = $project->platforms ?? [];
             $this->mismatches_enabled = $project->mismatches_enabled;
+            $this->actions_minutes_out = $project->actions_minutes_out_at !== null;
             $this->local_path = (string) $project->workspaceFor(auth()->user())->local_path;
         } else {
             Gate::authorize('create', Project::class);
@@ -60,12 +64,17 @@ class ProjectForm extends Component
             ...$request->rules(),
             // An absolute folder path (macOS/Linux, ~/…, or Windows). Web only: the API can't change it.
             'local_path' => ['nullable', 'string', 'max:1024', 'regex:#^(/|~/|[A-Za-z]:[\\\\/])[^\r\n\x00]*$#'],
+            'actions_minutes_out' => ['boolean'],
         ], [...$request->messages(), 'local_path.regex' => 'Use the full path of the folder, e.g. /Users/you/code/client-portal.'], ['local_path' => 'project folder']))
             ->map(fn ($v) => $v === '' ? null : $v)
             ->all();
 
         $localPath = $data['local_path'] ?? null;
-        unset($data['local_path']);
+        $minutesOut = (bool) ($data['actions_minutes_out'] ?? false);
+        unset($data['local_path'], $data['actions_minutes_out']);
+
+        // Keep the original time while it stays flagged, so people's dismissals of the notice still hold.
+        $data['actions_minutes_out_at'] = $minutesOut ? ($this->project?->actions_minutes_out_at ?? now()) : null;
 
         if ($this->project) {
             Gate::authorize('update', $this->project);

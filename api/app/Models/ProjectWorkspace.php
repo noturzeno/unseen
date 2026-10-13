@@ -15,7 +15,7 @@ class ProjectWorkspace extends Model
 {
     protected function casts(): array
     {
-        return ['runner_seen_at' => 'datetime'];
+        return ['runner_seen_at' => 'datetime', 'ci_notice_dismissed_at' => 'datetime'];
     }
 
     public function project(): BelongsTo

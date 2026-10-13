@@ -54,6 +54,11 @@
             <div class="hint">Coding agents record where the build differs from the PRD, for you or the client to decide. Turn it off for projects without a separate design: the tab, the dashboard card and the agent's instructions for it go away. Mismatches already recorded are kept and come back if you turn it on again.</div>
             @error('mismatches_enabled') <div class="error">{{ $message }}</div> @enderror
         </div>
+        <div class="field">
+            <label><input type="checkbox" wire:model="actions_minutes_out"> Out of GitHub Actions minutes</label>
+            <div class="hint">Tick this when GitHub stops CI jobs because the account's Actions minutes or spending limit ran out. The dashboard then shows everyone how to run CI on a local Mac, so test runs keep verifying features. Each person can dismiss it; untick it once CI runs again.</div>
+            @error('actions_minutes_out') <div class="error">{{ $message }}</div> @enderror
+        </div>
         @if ($project)
             @php($workspace = $project->workspaceFor(auth()->user()))
             <div class="field" id="project-folder">

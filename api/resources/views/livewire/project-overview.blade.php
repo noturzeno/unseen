@@ -20,6 +20,19 @@
 
     <x-project-tabs :project="$project" />
 
+    @if ($ciNotice)
+        <div class="card ci-notice" role="status">
+            <div class="card-head">
+                <h2>CI needs a local runner</h2>
+                <button class="btn sm ghost" type="button" wire:click="dismissCiNotice">Dismiss</button>
+            </div>
+            <p class="small">This project is out of GitHub Actions minutes, so CI jobs don't start and test runs stop verifying features. Run CI on a Mac instead: it's free, has no minute limit, and takes about 15 minutes to set up, or less with a coding agent.</p>
+            <div class="actions">
+                <a class="btn sm primary" href="{{ route('guides.self-hosted-runner') }}" target="_blank" rel="noopener">Learn more</a>
+            </div>
+        </div>
+    @endif
+
     @if ($summary['total'] === 0 && $summary['reports'] === 0)
         <livewire:connect-agent :project="$project" :intro="true" />
     @endif

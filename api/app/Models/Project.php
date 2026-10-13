@@ -16,7 +16,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
-#[Fillable(['name', 'description', 'repository_url', 'tech_stack', 'platforms', 'mismatches_enabled'])]
+#[Fillable(['name', 'description', 'repository_url', 'tech_stack', 'platforms', 'mismatches_enabled', 'actions_minutes_out_at'])]
 class Project extends Model
 {
     /** @use HasFactory<ProjectFactory> */
@@ -34,7 +34,22 @@ class Project extends Model
             'mismatches_enabled' => 'boolean',
             'archived_at' => 'datetime',
             'roadmap_synced_at' => 'datetime',
+            'actions_minutes_out_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Whether to suggest running CI on a local Mac to this person: the project is flagged as out of
+     * GitHub Actions minutes and they haven't dismissed it since it was (last) flagged.
+     */
+    public function showsCiNoticeTo(User $user): bool
+    {
+        if ($this->actions_minutes_out_at === null) {
+            return false;
+        }
+        $dismissed = $this->workspaceFor($user)->ci_notice_dismissed_at;
+
+        return $dismissed === null || $dismissed->lt($this->actions_minutes_out_at);
     }
 
     public function owner(): BelongsTo
