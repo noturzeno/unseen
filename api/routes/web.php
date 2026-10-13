@@ -28,6 +28,9 @@ Route::get('/', function () {
     return view('home', ['version' => $version, 'size' => is_file($package) ? filesize($package) : null]);
 })->name('home');
 
+// Public guide: running CI (and unseen verify) on a self-hosted Mac when GitHub Actions minutes run out.
+Route::view('/guides/self-hosted-runner', 'guides.self-hosted-runner')->name('guides.self-hosted-runner');
+
 Route::middleware('guest')->group(function () {
     Route::livewire('/login', Login::class)->name('login');
 });

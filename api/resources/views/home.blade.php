@@ -75,6 +75,7 @@ unseen init --api-url {{ $url }}</code></pre>
                     <li>
                         In CI, set <code>UNSEEN_TOKEN</code> and send test results so features can be verified:
                         <pre class="home-code"><code>unseen verify --run "php artisan test --log-junit junit.xml" --junit junit.xml</code></pre>
+                        <span class="muted small">Out of GitHub Actions minutes? <a href="{{ route('guides.self-hosted-runner') }}">Run CI on your own Mac</a>.</span>
                     </li>
                 </ol>
             </section>
